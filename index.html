@@ -394,9 +394,9 @@ function learnFrom(raw){
   if(w.length){m.words.push(pick(w));if(m.words.length>20)m.words.shift()}
 }
 // ---- big brain: the cat's server holds the API key; the page only sends state and the message ----
-let BIG=false;
+let BIG=false; const API="https://dbrdwtbldgthsobwsthx.supabase.co/functions/v1/cat";
 async function probeBrain(){
-  try{const r=await fetch(location.pathname+"?health",{cache:"no-store"});const j=await r.json();BIG=!!j.configured;$("brain").textContent=BIG?"big brain":"small brain ("+(j.reason||"server says no")+")"}
+  try{const r=await fetch(API+"?health",{cache:"no-store"});const j=await r.json();BIG=!!j.configured;$("brain").textContent=BIG?"big brain":"small brain ("+(j.reason||"server says no")+")"}
   catch(e){BIG=false;$("brain").textContent="small brain"}
   $("brain").classList.toggle("big",BIG);
 }
@@ -410,7 +410,7 @@ async function bigReply(text){
   const m=mem(); m.chat=m.chat||[];
   const body={message:text,state:brainState(),history:m.chat.slice(-10)};
   const ctl=new AbortController(); const timer=setTimeout(()=>ctl.abort(),20000);
-  const r=await fetch(location.pathname,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body),signal:ctl.signal});
+  const r=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body),signal:ctl.signal});
   clearTimeout(timer);
   const j=await r.json().catch(()=>({}));
   if(!r.ok||!j.say) throw new Error(j.error||("server "+r.status));
