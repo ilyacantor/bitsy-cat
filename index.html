@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>My Cat</title>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* Layout: one phone column. The cat lives in a big round room at the top with its speech bubble, four need meters under it, action buttons in the thumb zone, talk box last. */
+:root{
+  --bg:#f6efe4;        /* warm cream carpet */
+  --room:#fffaf2;
+  --card:#ffffff;
+  --ink:#2e2238;       /* dark plum */
+  --muted:#8a7a95;
+  --accent:#ff7b54;    /* salmon, for a cat */
+  --accent-ink:#2e2238;
+  --line:#e8d9c6;
+  --meter:#e8d9c6;
+  --good:#3ccf7a;--mid:#ffcc3d;--low:#ff5d73;
+  --display:"Fredoka","Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#1d1626;--room:#28203a;--card:#302745;--ink:#f6efe4;--muted:#b7a9c7;--line:#43375a;--meter:#43375a;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#1d1626;--room:#28203a;--card:#302745;--ink:#f6efe4;--muted:#b7a9c7;--line:#43375a;--meter:#43375a;color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.35;-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.app{min-height:100%;max-width:460px;margin:0 auto;padding-inline:16px;padding-block:12px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.top{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display)}
+.top h1{margin:0;font-size:24px;font-weight:700}
+.top .lvl{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.top .lvl b{color:var(--accent);font-size:16px}
+.top .lvl #brain.big{color:var(--good)}
+.pet.think .body{animation:wig .5s infinite}
+
+/* room */
+.room{background:var(--room);border-radius:28px;box-shadow:0 6px 0 var(--line);padding:14px 14px 10px;display:grid;gap:8px;position:relative;overflow:hidden;transition:background .6s}
+.room.dark{background:#141022}
+.bubble{min-height:52px;background:var(--card);border-radius:16px;padding:10px 12px;font-family:var(--display);font-weight:600;font-size:17px;text-wrap:balance;position:relative;z-index:1}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-8px;width:16px;height:16px;background:var(--card);transform:translateX(-50%) rotate(45deg);border-radius:3px}
+.bubble small{display:block;font-family:var(--body);font-weight:700;font-size:13px;color:var(--muted);margin-top:3px}
+.stage{height:200px;display:grid;place-items:center;position:relative}
+.pet{position:relative;width:140px;height:112px;transform-origin:50% 100%;transition:transform .4s;cursor:pointer;--fur:#d9a066}
+.body{position:absolute;left:10px;right:10px;top:10px;bottom:0;border-radius:50% 50% 46% 46% / 55% 55% 45% 45%;animation:breathe 3.2s ease-in-out infinite;transition:background .8s;box-shadow:inset -10px -12px 0 rgba(0,0,0,.12)}
+@keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.97) scaleX(1.02)}}
+.ear{position:absolute;top:-10px;width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:36px solid var(--fur);transition:border-color .8s,transform .3s;transform-origin:50% 100%}
+.ear.l{left:14px;transform:rotate(-14deg)}.ear.r{right:14px;transform:rotate(14deg)}
+.ear::after{content:"";position:absolute;left:-10px;top:12px;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:20px solid #ffb6c1}
+.pet.bored .ear.l,.pet.asleep .ear.l{transform:rotate(-40deg)}.pet.bored .ear.r,.pet.asleep .ear.r{transform:rotate(40deg)}
+.pet.hop .body,.pet.hop .ear,.pet.hop .face{animation:hop .5s}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-28px)}}
+.pet.wig .body,.pet.wig .face{animation:wig .4s 3}
+@keyframes wig{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+.face{position:absolute;inset:0}
+.eyes{position:absolute;left:0;right:0;top:40px;display:flex;justify-content:center;gap:22px}
+.eye{width:24px;height:26px;background:#f9f3b8;border-radius:50%;position:relative;overflow:hidden;transition:height .1s}
+.eye::after{content:"";position:absolute;left:50%;top:50%;width:7px;height:18px;background:var(--ink);border-radius:50%;transform:translate(-50%,-50%);transition:width .3s}
+.pet.hungry .eye::after,.pet.excited .eye::after{width:16px}
+.pet.blink .eye,.pet.asleep .eye{height:3px;border-radius:2px}
+.pet.asleep .eye::after{display:none}
+.nose{position:absolute;left:50%;top:72px;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:8px solid #ff8da1;transform:translateX(-50%)}
+.mouth{position:absolute;left:50%;top:80px;width:26px;height:10px;transform:translateX(-50%);transition:all .3s}
+.mouth::before,.mouth::after{content:"";position:absolute;top:0;width:13px;height:10px;border:3px solid var(--ink);border-top:0;border-radius:0 0 12px 12px}
+.mouth::before{left:0;border-right:0}.mouth::after{right:0;border-left:0}
+.mouth.o::before,.mouth.o::after{display:none}
+.mouth.o{width:14px;height:14px;border:3px solid var(--ink);border-radius:50%}
+.mouth.flat::before,.mouth.flat::after{height:0;border-radius:0}
+.mouth.frown::before,.mouth.frown::after{border-top:3px solid var(--ink);border-bottom:0;border-radius:12px 12px 0 0;top:4px}
+.mouth.wavy::before,.mouth.wavy::after{border:0;border-bottom:3px dotted var(--ink);height:0;top:5px}
+.wh{position:absolute;top:76px;width:34px;height:2px;background:var(--ink);opacity:.8}
+.wh.l{left:-6px;transform-origin:100% 50%}.wh.r{right:-6px;transform-origin:0 50%}
+.wh.l.a{transform:rotate(12deg)}.wh.l.c{transform:rotate(-12deg)}.wh.r.a{transform:rotate(-12deg)}.wh.r.c{transform:rotate(12deg)}
+.tail{position:absolute;right:-30px;bottom:6px;width:60px;height:60px;border:12px solid var(--fur);border-color:var(--fur) var(--fur) transparent transparent;border-radius:50%;transform:rotate(-20deg);transform-origin:0% 100%;animation:swish 2.4s ease-in-out infinite;transition:border-color .8s;z-index:-1}
+@keyframes swish{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(5deg)}}
+.pet.bored .tail,.pet.hungry .tail{animation-duration:.8s}
+.hat{position:absolute;left:50%;top:-40px;transform:translateX(-50%);font-size:34px;line-height:1;z-index:2}
+.zz{position:absolute;right:20px;top:10px;font-family:var(--display);font-weight:700;font-size:26px;color:var(--muted);animation:float 2s ease-in-out infinite}
+@keyframes float{0%{transform:translateY(0);opacity:0}30%{opacity:1}100%{transform:translateY(-30px);opacity:0}}
+.mood{text-align:center;font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+/* meters */
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;background:var(--card);border-radius:18px;padding:12px 14px;box-shadow:0 5px 0 var(--line)}
+.m{display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center;font-size:13px;font-weight:800}
+.m .em{font-size:18px}
+.m .lab{display:flex;justify-content:space-between;font-family:var(--display);font-weight:600;font-size:13px}
+.m .lab span:last-child{color:var(--muted);font-variant-numeric:tabular-nums}
+.m .trk{height:10px;background:var(--meter);border-radius:6px;overflow:hidden;margin-top:3px}
+.m .fil{height:100%;border-radius:6px;background:var(--good);transition:width .5s,background .5s}
+.m .fil.mid{background:var(--mid)}.m .fil.low{background:var(--low)}
+
+/* actions */
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.act{border:0;border-radius:18px;background:var(--card);box-shadow:0 6px 0 var(--line);padding:10px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.act .em{font-size:30px;line-height:1}
+.act .nm{font-family:var(--display);font-weight:600;font-size:13px}
+.act:active{transform:translateY(5px);box-shadow:0 1px 0 var(--line)}
+.act:disabled{opacity:.5;cursor:default}
+
+/* food tray */
+.tray{background:var(--card);border-radius:18px;padding:12px;box-shadow:0 5px 0 var(--line);display:grid;gap:8px}
+.tray h2{margin:0;font-family:var(--display);font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.foods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.food{border:2px solid var(--line);border-radius:14px;background:transparent;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.food .em{font-size:28px;line-height:1}
+.food .nm{font-family:var(--display);font-weight:600;font-size:12px;text-align:center}
+.food .tag{font-size:11px;font-weight:800;color:var(--muted)}
+.food:active{transform:translateY(2px)}
+
+/* talk */
+.talk{display:grid;grid-template-columns:1fr auto;gap:8px}
+.talk input{min-width:0;border:2px solid var(--line);border-radius:14px;padding:11px 12px;background:var(--card);font-weight:700}
+.talk input::placeholder{color:var(--muted)}
+.cta{border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-weight:700;font-size:17px;padding:11px 16px;box-shadow:0 5px 0 color-mix(in srgb,var(--accent) 70%,black)}
+.cta:active{transform:translateY(4px);box-shadow:0 1px 0 color-mix(in srgb,var(--accent) 70%,black)}
+.ghost{border:2px dashed var(--line);border-radius:14px;background:transparent;padding:10px;font-weight:800;font-size:13px;color:var(--muted)}
+
+/* name card */
+.name{background:var(--card);border-radius:22px;padding:18px 16px;box-shadow:0 6px 0 var(--line);display:grid;gap:10px;text-align:center}
+.name h2{margin:0;font-family:var(--display);font-size:22px;font-weight:700;text-wrap:balance}
+.name p{margin:0;color:var(--muted);font-weight:700;font-size:14px}
+.name input{border:2px solid var(--line);border-radius:14px;padding:12px;font-family:var(--display);font-size:20px;font-weight:600;text-align:center;background:var(--room)}
+
+/* prowl */
+.walkWrap{position:fixed;inset:0;background:var(--bg);z-index:5;display:flex;flex-direction:column;padding:12px 16px calc(16px + env(safe-area-inset-bottom,0px));gap:10px;max-width:460px;margin:0 auto}
+.walkWrap .hud{display:flex;justify-content:space-between;font-family:var(--display);font-weight:700;font-size:18px;font-variant-numeric:tabular-nums}
+.walkWrap canvas{width:100%;border-radius:22px;box-shadow:0 6px 0 var(--line);touch-action:none;flex:0 0 auto}
+.walkWrap .say{font-family:var(--display);font-weight:600;font-size:18px;text-align:center;min-height:48px;text-wrap:balance}
+.walkWrap .tip{text-align:center;font-weight:800;color:var(--muted);font-size:14px}
+.bubbles{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
+.bubbles i{position:absolute;bottom:-30px;width:22px;height:22px;border-radius:50%;border:3px solid #9fd8ff;background:rgba(159,216,255,.35);animation:rise 1.8s linear forwards}
+@keyframes rise{to{transform:translateY(-260px);opacity:0}}
+@media (prefers-reduced-motion: reduce){.body,.tail,.zz,.pet.hop .body,.pet.wig .body{animation:none}}
+</style>
+
+<div class="app" id="app">
+  <div class="top"><h1 id="title">My Cat</h1><div class="lvl"><span id="brain" title="Which brain is answering">small brain</span> · Level <b id="lvl">1</b></div></div>
+
+  <div class="name" id="nameCard" hidden>
+    <h2>A cat just appeared on your phone.</h2>
+    <p>Nobody invited it. It is already judging you. It needs a name, and it will probably ignore it.</p>
+    <input id="nameIn" placeholder="Type a name" maxlength="16" autocomplete="off">
+    <button class="cta" id="nameGo">That's its name</button>
+  </div>
+
+  <div class="room" id="room">
+    <div class="bubble" id="bubble">...</div>
+    <div class="stage">
+      <div class="zz" id="zz" hidden>z z z</div>
+      <div class="pet" id="pet">
+        <div class="hat" id="hat"></div>
+        <div class="tail"></div>
+        <div class="ear l"></div><div class="ear r"></div>
+        <div class="body" id="body"></div>
+        <div class="face">
+          <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
+          <div class="nose"></div>
+          <div class="mouth" id="mouth"></div>
+          <div class="wh l a"></div><div class="wh l"></div><div class="wh l c"></div>
+          <div class="wh r a"></div><div class="wh r"></div><div class="wh r c"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mood" id="mood"></div>
+  </div>
+
+  <div class="meters">
+    <div class="m"><span class="em">🐟</span><div><div class="lab"><span>Tummy</span><span id="vTummy"></span></div><div class="trk"><div class="fil" id="fTummy"></div></div></div></div>
+    <div class="m"><span class="em">⚡</span><div><div class="lab"><span>Energy</span><span id="vEnergy"></span></div><div class="trk"><div class="fil" id="fEnergy"></div></div></div></div>
+    <div class="m"><span class="em">🧶</span><div><div class="lab"><span>Happy</span><span id="vHappy"></span></div><div class="trk"><div class="fil" id="fHappy"></div></div></div></div>
+    <div class="m"><span class="em">🫧</span><div><div class="lab"><span>Clean</span><span id="vClean"></span></div><div class="trk"><div class="fil" id="fClean"></div></div></div></div>
+  </div>
+
+  <div class="acts">
+    <button class="act" id="aFeed"><span class="em">🍽️</span><span class="nm">Feed</span></button>
+    <button class="act" id="aWalk"><span class="em">🐾</span><span class="nm">Prowl</span></button>
+    <button class="act" id="aWash"><span class="em">🛁</span><span class="nm">Bath</span></button>
+    <button class="act" id="aSleep"><span class="em">🌙</span><span class="nm">Nap</span></button>
+  </div>
+
+  <div class="tray" id="tray" hidden>
+    <h2>What's for dinner? It secretly loves one and hates one.</h2>
+    <div class="foods" id="foods"></div>
+  </div>
+
+  <form class="talk" id="talk"><input id="say" placeholder="Say hi, meow, a color, a joke, 2+2, your name..." maxlength="60" autocomplete="off"><button class="cta" type="submit">Talk</button></form>
+  <button class="ghost" id="restart">Start over with a brand new cat</button>
+</div>
+
+<div class="walkWrap" id="walk" hidden>
+  <div class="hud"><span id="wTime">20</span><span id="wSteps">0 steps</span></div>
+  <canvas id="wc" width="400" height="220"></canvas>
+  <div class="say" id="wSay">Tap anywhere to pounce!</div>
+  <div class="tip">Jump the puddles. Catch the mice.</div>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,v));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const FOODS=[{k:"tuna",n:"Tuna ice cream",em:"🍦",hue:200},{k:"toast",n:"Mouse toast",em:"🍞",hue:40},{k:"nip",n:"Catnip spaghetti",em:"🍝",hue:110},{k:"plant",n:"Houseplant salad",em:"🪴",hue:135},{k:"box",n:"Cardboard soup",em:"📦",hue:30},{k:"sock",n:"Sock soup",em:"🧦",hue:205}];
+const HATS=["","","🎀","","🎩","","🕶️","","👑"];
+let S,blinkT,tickT,idleT,lastTalk=Date.now();
+
+function newPrefs(){const ks=FOODS.map(f=>f.k).sort(()=>Math.random()-.5);const p={};ks.forEach((k,i)=>p[k]=i===0?"love":i===1?"yuck":"ok");return p}
+function fresh(){
+  return{name:null,born:Date.now(),last:Date.now(),tummy:65,energy:80,happy:70,clean:90,asleep:false,prefs:newPrefs(),known:{},hue:25+Math.floor(Math.random()*30),walks:0,meals:0,washes:0,finds:0,xp:0,said:0,mem:null,cat:true};
+}
+const level=()=>Math.min(9,Math.floor(S.xp/5)+1);
+function mood(){
+  if(S.asleep) return"asleep";
+  if(S.tummy<30) return"hungry";
+  if(S.energy<25) return"sleepy";
+  if(S.clean<30) return"stinky";
+  if(S.happy<35) return"bored";
+  return"happy";
+}
+function decay(){
+  const now=Date.now(), dt=(now-S.last)/60000; S.last=now; if(dt<=0) return;
+  S.tummy=clamp(S.tummy-dt/4); S.happy=clamp(S.happy-dt/5); S.clean=clamp(S.clean-dt/10);
+  if(S.asleep){S.energy=clamp(S.energy+dt/2); if(S.energy>=100){S.asleep=false}} else S.energy=clamp(S.energy-dt/10);
+}
+
+// ---- rendering ----
+function say(main,sub){const b=$("bubble");b.innerHTML="";b.append(main);if(sub){const s=document.createElement("small");s.textContent=sub;b.append(s)}}
+function meter(k,v){$("v"+k).textContent=Math.round(v);const f=$("f"+k);f.style.width=v+"%";f.className="fil"+(v<30?" low":v<60?" mid":"")}
+function render(){
+  const m=mood();
+  $("title").textContent=S.name?S.name:"My Cat";
+  $("lvl").textContent=level();
+  $("nameCard").hidden=!!S.name; $("room").hidden=!S.name;
+  document.querySelectorAll(".meters,.acts,.talk,#restart").forEach(e=>e.hidden=!S.name);
+  if(!S.name) return;
+  meter("Tummy",S.tummy);meter("Energy",S.energy);meter("Happy",S.happy);meter("Clean",S.clean);
+  const sat=m==="stinky"?30:60, light=m==="sleepy"||m==="asleep"?48:58;
+  const fur=`hsl(${S.hue} ${sat}% ${light}%)`;
+  $("body").style.background=fur; $("pet").style.setProperty("--fur",fur);
+  $("pet").style.transform=`scale(${1+level()*.035})`;
+  const p=$("pet"); p.classList.remove("asleep","hungry","bored","excited"); if(m==="asleep"||m==="hungry"||m==="bored") p.classList.add(m);
+  $("room").classList.toggle("dark",S.asleep);
+  $("zz").hidden=!S.asleep;
+  $("hat").textContent=HATS[level()-1]||"👑";
+  if(level()>mem().lvlSeen){const L=level();mem().lvlSeen=L;setTimeout(()=>{wiggle("hop");say(`Level ${L}. I grew. I was already perfect, so this is just more of that. `+(HATS[L-1]?"Also I got a thing for my head. I will tolerate it.":"No head thing this time. Good. Hats are for dogs."),"")},1500)}
+  $("mouth").className="mouth "+({happy:"",hungry:"o",sleepy:"flat",stinky:"wavy",bored:"frown",asleep:"flat"}[m]);
+  $("mood").textContent={happy:"tolerating you",hungry:"starving (dramatically)",sleepy:"needs nap number 14",stinky:"a bit stinky, won't admit it",bored:"bored, plotting",asleep:"napping, do not disturb"}[m];
+  $("aSleep").querySelector(".nm").textContent=S.asleep?"Wake":"Nap";
+  $("aSleep").querySelector(".em").textContent=S.asleep?"☀️":"🌙";
+  ["aFeed","aWalk","aWash"].forEach(id=>$(id).disabled=S.asleep);
+  save();
+}
+function wiggle(cls){const p=$("pet");p.classList.remove("hop","wig");void p.offsetWidth;p.classList.add(cls)}
+function blink(){$("pet").classList.add("blink");setTimeout(()=>$("pet").classList.remove("blink"),140);blinkT=setTimeout(blink,1500+Math.random()*3000)}
+
+// ---- the brain: memory, moods, commands, jokes ----
+const COLORS={red:0,orange:28,yellow:52,gold:46,lime:90,green:125,teal:170,turquoise:178,blue:215,navy:232,purple:275,violet:280,magenta:305,pink:332,brown:25,ginger:22,black:-2,white:-3,grey:-4,gray:-4,rainbow:-1};
+const hash=s=>{let h=7;for(const ch of s)h=(h*31+ch.charCodeAt(0))>>>0;return h};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const days=()=>Math.max(0,Math.floor((Date.now()-S.born)/86400000));
+const hour=()=>new Date().getHours();
+const you=()=>S.mem.you||pick(["human","servant","tall one","can opener","roommate"]);
+function mem(){S.mem=S.mem||{you:null,favs:{},likes:[],words:[],lastMsgs:[],pending:null,sameFood:[],lvlSeen:1,pats:0};if(S.mem.pats===undefined)S.mem.pats=0;return S.mem}
+function opinion(w){
+  const h=hash(w)%6;
+  return [`${cap(w)}? I'd knock it off a table. That's a compliment.`,
+    `${cap(w)}? I sat on ${w} once. It was warm. Ten out of ten.`,
+    `${cap(w)} is fine. I will ignore it elegantly.`,
+    `${cap(w)}? *hisses* Never say that near me again.`,
+    `${cap(w)}?! YES. I'd chase ${w} at 3am. I'd scream at ${w}. That's love.`,
+    `${cap(w)}. Hm. If it fits in a box, I'm in. If not, I'm on top of it.`][h];
+}
+function timeLine(){
+  const h=hour();
+  if(h<6) return"It's the middle of the night. Perfect. Zoomies o'clock. Why are YOU awake?";
+  if(h<12) return"It's morning. I've been awake since 4. I sat on your face at 5. You're welcome.";
+  if(h<17) return"It's the afternoon. The sunbeam is on the carpet. I am in the sunbeam. This is the whole day.";
+  if(h<21) return"It's evening. Dinner was late. I've written it down. The list is long.";
+  return"It's night. Bedtime for humans. Time to run across the hallway for no reason.";
+}
+function greet(){
+  const m=mem(), gap=(Date.now()-S.last)/60000, n=S.name, md=mood();
+  if(S.asleep) return say("z z z... (nap in progress)","Tap Wake. Do it at your own risk.");
+  if(S.justCat){S.justCat=false;return say(`Big news, ${you()}. I'm a cat now. I was always a cat. You just didn't look closely.`,"Same name, same memories, more attitude. The food tray is new.")}
+  if(gap>2880) return say(`${Math.round(gap/1440)} days. You were gone ${Math.round(gap/1440)} days. I filed a complaint with the couch. The couch agreed.`,"Check my meters. Then apologize.");
+  if(gap>720) return say(`You were gone ${Math.round(gap/60)} hours. I knocked one thing off a table for every hour. You'll find them.`,"Check my meters.");
+  if(gap>60) return say(pick([`Oh. You're back. I noticed. I'm not saying I cared.`,`${n} waited by the door. Then ${n} forgot why. Then ${n} ate a sock.`]),"");
+  if(S.tummy<30&&S.clean<30) return say("Hungry AND dirty. Two problems. I'm a cat, I only handle one problem at a time, and the one I'm handling is you.","");
+  const lines={
+    happy:[`Hello ${you()}. Feed me. That's the whole greeting.`,`I pushed something off a shelf while you were gone. You'll find it. Hi.`,timeLine(),S.walks?`${S.walks} prowl${S.walks>1?"s":""}, ${S.finds} ${S.finds===1?"mouse":"mice"}. I'm a hunter. I'm also very soft. Both are true.`:"I have never been on a prowl. Outside is a rumor. Press the paw and prove it.",`I'm purring. Don't make it weird.`],
+    hungry:["The bowl is empty. The bowl is a LIE. I can see the bottom. Fix it.","I'm starving. I ate twenty minutes ago. That was a different cat."],
+    sleepy:["I need nap number fourteen. It's a medical thing. Cats need sixteen a day. Look it up.","Too sleepy to be rude. Nap me."],
+    stinky:["I smell. Cats don't smell. Therefore I am not a cat. Wait. Hmm.","I rolled in something. It was glorious. It's on me now. No bath. NO BATH."],
+    bored:["I stared at the wall for an hour. The wall blinked first. I'm bored.","Bored. Entertain me or I scream at 3am. Your choice. It isn't really."]
+  };
+  say(pick(lines[md]),"");
+}
+function reply(raw){
+  const m=mem(), t=raw.toLowerCase().trim(), n=S.name, w=t.replace(/[^a-z0-9' ]/g," ").split(/\s+/).filter(Boolean);
+  S.said++; S.xp++;
+  const love=FOODS.find(f=>S.prefs[f.k]==="love"), yuck=FOODS.find(f=>S.prefs[f.k]==="yuck");
+  let r=null, g;
+
+  if(m.pending==="knock1"){m.pending="knock2";return`${cap(raw.trim())} who? (I'm only asking to be polite. Cats aren't polite. This is new for me.)`}
+  if(m.pending==="knock2"){m.pending=null;return pick([`"${raw.trim()}"! Ha. I don't get it. I'm laughing anyway so you'll feed me.`,`${cap(raw.trim())}. HA. Okay, that one got a tail flick. That's a standing ovation in cat.`])}
+
+  if(/\b(pet|pat|stroke|scratch|rub|belly)\b/.test(t)&&!/\b(dog|cat|hamster)\b/.test(t)){m.pats++;if(m.pats%3===0){wiggle("wig");return"That's enough. *bites gently* We had a good thing. You pushed it. Three pats max. You know this."}return pick(["*purrrrrr* ...keep going. Keep going. I'll tell you when to stop. Violently.","Mmm. Behind the ears. Yes. You may continue, servant."])}
+  if(m.lastMsgs.includes(t)&&t.length>2){m.lastMsgs.push(t);return pick([`You said that already. I heard you the first time. I ignored you the first time too.`,`Again? Fine. Louder: ${(m.words.length?pick(m.words):"meow").toUpperCase()}!`])}
+  m.lastMsgs.push(t); if(m.lastMsgs.length>6)m.lastMsgs.shift();
+
+  // memory writes
+  if(g=t.match(/(?:my name is|i am|i'm|im|call me) ([a-z]+)/)){const nm=cap(g[1]);if(!["hungry","bored","tired","sad","happy","sorry","good","fine","back","here","nine","ten","eight","not","so","a","the"].includes(g[1])){m.you=nm;return pick([`${nm}. Noted. I'll still call you "servant" but I'll think ${nm}.`,`${nm}! Good name. I'm going to say it when I want food, ${nm}. So, a lot, ${nm}.`])}}
+  if(g=t.match(/my favou?rite ([a-z]+) is ([a-z0-9 ]+)/)){m.favs[g[1]]=g[2].trim();return`Favorite ${g[1]}: ${g[2].trim()}. Stored in my tail. Mine is ${/food|snack|meal|dinner/.test(g[1])?love.n:"whatever you're holding. Always."}`}
+  if(g=t.match(/\bi (?:really )?(?:like|love) ([a-z0-9 ]+)/)){const thing=g[1].trim();if(!/you\b/.test(thing)){m.likes.push(thing);if(m.likes.length>8)m.likes.shift();return pick([`You like ${thing}? I'll sit on ${thing} the moment you look away. That's affection.`,`${cap(thing)}. ${opinion(thing)}`])}}
+
+  // colors
+  for(const c in COLORS){if(new RegExp("\\b"+c+"\\b").test(t)){const h=COLORS[c];
+    if(h===-1){S.hue=Math.floor(Math.random()*360);r="Rainbow? Cats come in one color at a time. I picked one. Surprise."}
+    else if(h===-2){S.hue=265;r="Black cat. Classic. Crossing your path now. Good luck with that."}
+    else if(h===-3){r="White? I'd show every hair on your clothes. Oh wait. I already do. No."}
+    else if(h===-4){S.hue=240;r="Grey. Dignified. Like a tiny, furious businessman."}
+    else{S.hue=h;r=pick([`${cap(c)}. Fine. I'm ${c} now. I feel ${c}. Nothing has changed inside. Nothing ever does.`,`${cap(c)}? Done. That cost me nothing and I still want a treat for it.`])}
+    render();return r}}
+
+  // things the cat can actually do
+  if(/(your|ur) favou?rite (food|snack)|favou?rite (food|snack)\?/.test(t))return S.known[love.k]?`You know this. ${love.n}. Say it with me. ${love.n.toUpperCase()}.`:`Fine. A secret. ${love.n}. Now press Feed and prove you listened.`;
+  if(/knock knock/.test(t)){m.pending="knock1";return"Who's there? (Not that I'd get up to check.)"}
+  if(/\b(jump|hop|pounce)\b/.test(t)){wiggle("hop");return pick(["POUNCE. Did you see that? Nothing was there. I pounced anyway.","Jumped. Landed on my feet. I always do. It's my one rule."])}
+  if(/\b(dance|wiggle|shake|zoomies)\b/.test(t)){wiggle("wig");return pick(["ZOOMIES. Hallway. Wall. Hallway. Done. Why? No reason. There is never a reason.","Dancing? Cats don't dance. *wiggles butt before pouncing* That doesn't count."])}
+  if(/\b(treat|feed|food|snack|eat|dinner|lunch|breakfast|tuna|fish)\b/.test(t)){$("tray").hidden=false;setTimeout(()=>$("tray").scrollIntoView({behavior:"smooth",block:"nearest"}),100);return S.known[love.k]?`The tray. Yes. You know I love ${love.n}. Don't make me say it twice.`:`The tray is open. I love one of those. I won't say which. It's not ${yuck.n}. I've said too much.`}
+  if(/\b(walk|prowl|outside|run|park|hunt)\b/.test(t)){if(S.energy<15)return"Prowl? Now? My energy is "+Math.round(S.energy)+". Carry me. No? Then nap first.";setTimeout(walk,1200);return"Walk? Cats don't WALK. We prowl. Fine. PROWL. Open the door, servant."}
+  if(/\b(sleep|bed|nap|tired|night night)\b/.test(t)&&!/you/.test(t)){setTimeout(sleep,900);return"Nap number fourteen, right on schedule. Do not touch the belly. The belly is a trap."}
+  if(/\b(wash|bath|shower|clean|stinky|smell|water)\b/.test(t)){if(/water/.test(t)&&!/bath|wash/.test(t))return"WATER? Where. WHERE. *climbs the curtains*";setTimeout(wash,700);return"A BATH? You've chosen violence. Fine. I'll remember this forever. Forever is about a minute."}
+  if(/\b(box|cardboard)\b/.test(t)){wiggle("hop");return pick(["A BOX? Where? I'm in it. I'm already in it. It's too small. Perfect.","Box. Yes. If I fits, I sits. I always fits. Physics is a suggestion."])}
+  if(/\blaser\b|red dot/.test(t)){wiggle("wig");return"THE RED DOT. Where. WHERE. It was RIGHT THERE. Someday I'll catch it. Someday."}
+  if(/cucumber/.test(t)){wiggle("hop");return"CUCUMBER?! *jumps four feet straight up* WHY. Why would you say that. We don't say that."}
+  if(/\b(meow|mew|purr|nyan)\b/.test(t))return pick(["Meow. (That was sarcastic. You can't tell. That's the point.)","Mrrp? Mrrrow. Meow meow. Translation: feed me. It's always feed me.","Purrrrr. Okay. You said it right. Don't let it go to your head."]);
+  if(/\b(dogs?|puppy|puppies|woof|bark)\b/.test(t))return pick(["*HISSSSS* A dog? Dogs fetch. Dogs come when called. Dogs have no dignity. I'd never. Unless there's tuna.","Dog? I knew a dog once. I sat on it. It allowed it. That's the whole relationship."]);
+  if(/\b(mouse|mice|bird|birds|squirrel)\b/.test(t))return pick(["*chatters at the window* ek ek ek ek. Sorry. Instinct. Where were we.","Mice? I caught one once. I left it in your shoe. A gift. You screamed. Rude."]);
+
+  // questions about itself
+  if(/how old/.test(t)){const d=days();return d===0?"Zero days old. Born today. Already unimpressed.":`${d} day${d>1?"s":""} old. In cat years that's... still a kitten, and I will act like it.`}
+  if(/what time|time is it/.test(t))return timeLine();
+  if(/your name|who are you|what are you/.test(t))return pick([`I'm ${n}. A cat. Four paws, two eyes, both judging.`,`${n}. Cat. Professional sleeper. Amateur yeller.`]);
+  if(/favou?rite ([a-z]+)/.test(t)){const k=t.match(/favou?rite ([a-z]+)/)[1];return m.favs[k]?`Your favorite ${k} is ${m.favs[k]}. You told me. I remember things when they're useful to me.`:`My favorite ${k}? The one you're using. Whatever you're sitting on, holding, or reading. That one.`}
+  if(/\b(boy|girl)\b/.test(t))return"I'm a cat. Cats are cats. Pronouns: Your Majesty.";
+  if(/\bsecret\b/.test(t))return pick([`A secret: my favorite food is ${love.n}. Tell no one. Especially the tray.`,`Secret: I sleep on your pillow when you're out. The hair is evidence. Also ${love.n} is my favorite.`]);
+  if(/do you (like|love) ([a-z0-9 ]+)/.test(t)){const thing=t.match(/do you (?:like|love) ([a-z0-9 ]+)/)[1].trim();if(/\bme\b|\byou\b/.test(thing))return pick([`Like you? I sit on your laptop while you work. What more do you want.`,`Love you? I brought you a dead leaf once. That's a ring, in cat.`]);return opinion(thing)}
+  if(/(love|like) you|miss you/.test(t))return pick([`Love you too, ${you()}. Slow blink. That's the big one. Don't tell the other humans.`,`I love you more than ${love.n}. Almost. Nearly. It's close. Don't test it.`]);
+
+  // small smarts
+  if(g=t.match(/(\d+)\s*(plus|\+|minus|-|times|x|\*|divided by|\/)\s*(\d+)/)){const a=+g[1],b=+g[3],op=g[2];let v=/plus|\+/.test(op)?a+b:/minus|-/.test(op)?a-b:/times|x|\*/.test(op)?a*b:b===0?null:a/b;if(v===null)return"Divide by zero? My tail went straight up. Let's not.";v=Math.round(v*100)/100;return pick([`${v}. I counted on my toes. I have eighteen. Look it up.`,`${v}. Math is easy. Opening a can is hard. You do that part.`,`It's ${v}. Now pay me in treats.`])}
+  if(g=t.match(/count to (\d+)/)){const k=Math.min(+g[1],12);const s=Array.from({length:k},(_,i)=>i+1).join(", ");return +g[1]>12?`${s}... and then I saw my own tail and had to chase it. ${g[1]} is not happening today.`:`${s}. Done. That's one number per nap I've had today.`}
+  if(g=t.match(/\bspell ([a-z]+)/))return`${g[1].toUpperCase().split("").join("-")}. ${cap(g[1])}. I walked across the keyboard and that's what came out. Lucky.`;
+  if(g=t.match(/^(?:say|repeat) (.+)/))return`${g[1].toUpperCase()}. I said it. At 3am I'll say it again, louder, for no reason.`;
+  if(/\bjoke\b|funny|make me laugh/.test(t))return pick(["Why did the cat sit on the laptop? Because the human was using it. That's it. That's the joke. It's also my schedule.","What's a cat's favorite color? Purr-ple. I hate myself. Feed me.","I knocked a glass off the table while looking you in the eye. That's not a joke. That's art.","Knock knock. Say 'who's there'. I'll wait. I'm good at waiting. I'm a cat by a closed door."]);
+  if(/\bwhy\b/.test(t))return pick(["Because I'm a cat. That's the whole reason. It covers everything.","Why? Why do I run at 3am? Why do I sit in the sink? Nobody knows. Not even me. Especially not me.","Great question. Here's mine: is the bowl full? Go check. I'll wait."]);
+  if(/\b(school|homework|math|teacher|class)\b/.test(t))return pick(["School? I'd sit on your homework. Then on your teacher. I don't discriminate.","Homework. I ate some once. The teacher blamed the dog. The dog took it. Dogs are like that."]);
+  if(/\b(mom|mum|mama|dad|papa|sister|brother|grandma|grandpa|aunt|uncle)\b/.test(t))return"Tell them I said mrrp. They'll know what it means. They won't. Nobody does. That's power.";
+  if(/\b(sing|song|music)\b/.test(t))return"🎵 MEOOOOW. Meow meow. MEOOOOOW. 🎵 That's the 3am hallway classic. You've heard it.";
+  if(/birthday/.test(t))return`My birthday? I'm ${days()} days old. I accept tuna, boxes, and the box the tuna came in.`;
+  if(/\b(sorry)\b/.test(t))return"Forgiven. I forgot what for. I hold grudges for exactly one treat.";
+  if(/\b(stupid|dumb|ugly|hate you|boring|bad cat)\b/.test(t))return pick(["Rude. I'm going to sit with my back to you for an hour. You'll feel it.","*slowly pushes your phone toward the edge of the table while maintaining eye contact*"]);
+  if(/\b(smart|clever|cute|cool|awesome|best|funny|good cat|good kitty|pretty|fluffy)\b/.test(t))return pick(["I know. I've always known. Say it again anyway.",`Thanks, ${you()}. Slow blink. You've earned one.`,"Obviously. Now feed me. Compliments aren't tuna."]);
+  if(/\b(hi|hello|hey|yo|sup)\b/.test(t))return pick([`Hello ${you()}. Feed me. That's the whole greeting.`,"Mrrp. That's hello in cat. It also means feed me. Most things do.",`Hey. ${timeLine()}`]);
+  if(/\b(bye|goodbye|see you|later)\b/.test(t))return"Bye. I'll be on your pillow. Or in a box. Or in the sink. You'll never know. I live in your phone now.";
+  if(/\b(yes|yeah|yep|ok|okay|sure)\b/.test(t)&&w.length<=2)return pick(["Yes? Good. I agree. I didn't hear the question.","Okay. Deal. The couch is my witness."]);
+  if(/\b(no|nope|nah)\b/.test(t)&&w.length<=2)return pick(["No? Interesting. I've never heard that word before. I'm choosing not to learn it.","Nope. Noted. Ignored. Next."]);
+  if(/\?$/.test(t)||/^(is|are|do|does|can|will|should|would|could)\b/.test(t)){const h=hash(t)%4;return [`Yes. Obviously. I'm a cat. We're always right. Even when we fall off things.`,`No. Absolutely not. Unless it's tuna. Is it tuna?`,`I asked my tail. The tail says yes. The tail is never wrong. Except around corners.`,`I don't know, ${you()}. But I know where your other sock is. Does that help?`][h]}
+
+  // learn words, callbacks, fallback
+  const fresh=w.filter(x=>x.length>3&&!m.words.includes(x));
+  if(fresh.length){m.words.push(pick(fresh));if(m.words.length>20)m.words.shift()}
+  const word=w.filter(x=>x.length>2).length?pick(w.filter(x=>x.length>2)):"that";
+  const old=m.words.filter(x=>x!==word);
+  if(old.length>=3&&Math.random()<.3){const o=pick(old);return pick([`"${word}"? Hm. Remember when you said "${o}"? I've been sitting on that thought like a warm laptop.`,`${cap(word)}, ${o}, tuna. My three favorite words. Tuna first. Then tuna again.`])}
+  if(m.likes.length&&Math.random()<.2){const l=pick(m.likes);return`"${word}"... you like ${l}, right? Is ${l} warm? Can I sit on it?`}
+  return pick([`You said "${word}". I'm going to ignore that in a very elegant way.`,`"${word}". Fascinating. *licks paw* Go on.`,`"${word}"? Is "${word}" edible? Is it warm? Can I knock it off something?`,`${word.toUpperCase()}. I shouted it so you'd think I care. I don't. I might.`,`${cap(word)}. If ${word} were a food it would be ${pick(FOODS).n.toLowerCase()}. I'd still complain.`]);
+}
+function learnFrom(raw){
+  const m=mem(), t=raw.toLowerCase().trim(); let g;
+  if(g=t.match(/(?:my name is|i am|i'm|im|call me) ([a-z]+)/)){if(!["hungry","bored","tired","sad","happy","sorry","good","fine","back","here","nine","ten","eight","not","so","a","the"].includes(g[1]))m.you=cap(g[1])}
+  if(g=t.match(/my favou?rite ([a-z]+) is ([a-z0-9 ]+)/))m.favs[g[1]]=g[2].trim();
+  if(g=t.match(/\bi (?:really )?(?:like|love) ([a-z0-9 ]+)/)){const thing=g[1].trim();if(!/you\b/.test(thing)){m.likes.push(thing);if(m.likes.length>8)m.likes.shift()}}
+  const w=t.replace(/[^a-z0-9' ]/g," ").split(/\s+/).filter(x=>x.length>3&&!m.words.includes(x));
+  if(w.length){m.words.push(pick(w));if(m.words.length>20)m.words.shift()}
+}
+// ---- big brain: the cat's server holds the API key; the page only sends state and the message ----
+let BIG=false;
+async function probeBrain(){
+  try{const r=await fetch(location.pathname+"?health",{cache:"no-store"});const j=await r.json();BIG=!!j.configured;$("brain").textContent=BIG?"big brain":"small brain ("+(j.reason||"server says no")+")"}
+  catch(e){BIG=false;$("brain").textContent="small brain"}
+  $("brain").classList.toggle("big",BIG);
+}
+function brainState(){
+  const m=mem(), love=FOODS.find(f=>S.prefs[f.k]==="love"), yuck=FOODS.find(f=>S.prefs[f.k]==="yuck");
+  return{name:S.name,mood:mood(),tummy:Math.round(S.tummy),energy:Math.round(S.energy),happy:Math.round(S.happy),clean:Math.round(S.clean),level:level(),daysOld:days(),hour:hour(),
+    walks:S.walks,mice:S.finds,meals:S.meals,secretFavoriteFood:love.n,secretHatedFood:yuck.n,foodsTried:Object.keys(S.known).map(k=>FOODS.find(f=>f.k===k).n+" ("+S.prefs[k]+")"),
+    humanName:m.you,humanFavorites:m.favs,humanLikes:m.likes,wordsTheHumanTaught:m.words.slice(-8),facts:m.facts||[],foods:FOODS.map(f=>f.n),colorsItCanTurn:Object.keys(COLORS)};
+}
+async function bigReply(text){
+  const m=mem(); m.chat=m.chat||[];
+  const body={message:text,state:brainState(),history:m.chat.slice(-10)};
+  const ctl=new AbortController(); const timer=setTimeout(()=>ctl.abort(),20000);
+  const r=await fetch(location.pathname,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body),signal:ctl.signal});
+  clearTimeout(timer);
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||!j.say) throw new Error(j.error||("server "+r.status));
+  m.chat.push({role:"user",content:text},{role:"assistant",content:j.say}); if(m.chat.length>12)m.chat.splice(0,m.chat.length-12);
+  if(j.remember){m.facts=m.facts||[];if(!m.facts.includes(j.remember))m.facts.push(j.remember);if(m.facts.length>20)m.facts.shift()}
+  if(typeof j.hue==="number")S.hue=((j.hue%360)+360)%360;
+  const act={hop:()=>wiggle("hop"),wig:()=>wiggle("wig"),walk:()=>setTimeout(walk,1200),sleep:()=>setTimeout(sleep,900),wash:()=>setTimeout(wash,700),feed:()=>{$("tray").hidden=false;setTimeout(()=>$("tray").scrollIntoView({behavior:"smooth",block:"nearest"}),100)}}[j.action];
+  if(act)act();
+  return j.say;
+}
+function idleLine(){
+  const m=mem(), md=mood();
+  if(S.asleep||document.hidden) return;
+  const L=[timeLine(),
+    S.finds>0?`I keep my ${S.finds} ${S.finds===1?"mouse":"mice"} under the couch. You'll find them eventually. With your foot.`:"I heard there are mice outside. Just walking around. Free. Prowl?",
+    S.meals>0?`I've eaten ${S.meals} time${S.meals>1?"s":""} in my life. The bowl is still empty. Explain that.`:"I have never eaten. Ever. Not once. (Don't check the meter.)",
+    m.you?`${m.you}. ${m.you}. ${m.you}. ...Nothing. I just wanted you to look at me. Now stop.`:"You never told me your name. Say 'my name is' and your name. I'll remember it when I want something.",
+    m.words.length>2?`"${pick(m.words)}". Still thinking about that one. Sitting on it. Warm.`:"Say a word. Any word. I collect them. Also hair ties. Also your socks.",
+    "*stares at an empty corner of the room* ...It's nothing. Probably. Don't look.",
+    "The ceiling is named Gary. I named it. Gary and I have an understanding.",
+    md==="happy"?"Everything is fine. Suspiciously fine. I'm going to knock something over to balance it out.":null,
+    "*slow blink* That's cat for I love you. Don't tell anyone.",
+    level()>=4?`Level ${level()}. I'm wearing a head thing. I've decided to allow it.`:null
+  ].filter(Boolean);
+  say(pick(L),"");
+}
+
+// ---- actions ----
+function feed(k){
+  if(S.tummy>=98){say("I'm full. FULL. *stares at bowl* ...put more in anyway. For looking at.","");return}
+  const f=FOODS.find(x=>x.k===k), p=S.prefs[k];
+  S.known[k]=true; S.meals++; S.xp++; const mm=mem(); mm.sameFood.push(k); if(mm.sameFood.length>3)mm.sameFood.shift();
+  S.hue=Math.round(S.hue+(f.hue-S.hue)*.12);
+  if(mm.sameFood.length===3&&mm.sameFood.every(x=>x===k)){S.tummy=clamp(S.tummy+15);$("tray").hidden=true;render();paintFoods();say(`${f.n} AGAIN? I loved it yesterday. Today it's poison. That's how cats work. Keep up.`,"Try something else. It gets bored.");return}
+  if(p==="love"){S.tummy=clamp(S.tummy+30);S.happy=clamp(S.happy+15);wiggle("hop");say(pick([`${f.n}!!! *purrs so loud the phone vibrates* Finally. FINALLY. You listened.`,`${f.n}. Yes. I'd marry it. I'd knock everything else off the table for it.`]),"That's its favorite. Remember that.")}
+  else if(p==="yuck"){S.tummy=clamp(S.tummy+10);S.happy=clamp(S.happy-10);wiggle("wig");say(pick([`${f.n}? *sniffs* *walks away* *comes back* *sniffs again* No. Insulting.`,`${f.n}. I'd rather eat the box it came in. Actually, give me the box.`]),"It hates that one. Never again.")}
+  else{S.tummy=clamp(S.tummy+22);S.happy=clamp(S.happy+4);say(pick([`${f.n}. Acceptable. I'll eat half and leave the rest as a message.`,`${f.n}. Fine. I ate it. I'm not thanking you. I'm never thanking you.`]),"")}
+  $("tray").hidden=true; render(); paintFoods();
+}
+function paintFoods(){
+  const el=$("foods"); el.innerHTML="";
+  FOODS.forEach(f=>{const b=document.createElement("button");b.className="food";const tag=S.known[f.k]?{love:"loves it",yuck:"hates it",ok:"tolerates it"}[S.prefs[f.k]]:"untried";b.innerHTML=`<span class="em">${f.em}</span><span class="nm">${f.n}</span><span class="tag">${tag}</span>`;b.addEventListener("click",()=>feed(f.k));el.append(b)});
+}
+function wash(){
+  S.clean=100;S.happy=clamp(S.happy-6);S.washes++;S.xp++;
+  const bb=document.createElement("div");bb.className="bubbles";
+  for(let i=0;i<14;i++){const b=document.createElement("i");b.style.left=Math.random()*100+"%";b.style.animationDelay=Math.random()*.8+"s";bb.append(b)}
+  $("room").append(bb);setTimeout(()=>bb.remove(),2600);
+  wiggle("wig");say(pick(["WATER. BETRAYAL. I will remember this forever. Forever is about a minute, but still.","*yowls* I'm clean. I'm furious. I'm both. Look what you've done to my fluff."]),"Clean, but it cost you a little Happy. Cats.");render();
+}
+function sleep(){
+  if(S.asleep){S.asleep=false;say("I was awake the whole time. Watching you. Judging. Also, breakfast?","");}
+  else{S.asleep=true;S.xp++;say("Finally. Nap number fourteen. I'm behind schedule because of you.","Energy fills up while it sleeps. Come back later. Quietly.")}
+  render();
+}
+
+// ---- prowl mini game ----
+function walk(){
+  if(S.energy<15){say("Prowl? Carry me. No? Then I nap first. Those are the options.","");return}
+  const wrap=$("walk"),c=$("wc"),ctx=c.getContext("2d");wrap.hidden=true;
+  const W=c.width,H=c.height,ground=H-40;
+  let t=20,steps=0,y=0,vy=0,obs=[],stars=0,splashes=0,last=performance.now(),spawn=0,speed=3.2,msgT=0,run=true;
+  const color=getComputedStyle($("body")).backgroundColor;
+  const wsay=m=>{$("wSay").textContent=m;msgT=90};
+  wrap.hidden=false;
+  const jump=()=>{if(y===0){vy=-11;}};
+  c.onpointerdown=jump;
+  function frame(now){
+    if(!run)return;
+    const dt=Math.min(32,now-last)/16.7;last=now;
+    t-=dt/60;steps+=dt*speed/4;spawn-=dt;
+    if(spawn<=0){obs.push({x:W+20,kind:Math.random()<.35?"star":"puddle"});spawn=55+Math.random()*50}
+    vy+=.55*dt;y=Math.min(0,y+vy*dt);if(y===0)vy=0;
+    const px=70,py=ground+y;
+    for(const o of obs){o.x-=speed*dt;
+      if(!o.hit&&Math.abs(o.x-px)<26){
+        if(o.kind==="star"){o.hit=true;stars++;wsay(pick(["MOUSE. Got it. I'm leaving it in your shoe.","Caught one. I'm a hunter. A soft, round hunter."]))}
+        else if(y>-18){o.hit=true;splashes++;wsay(pick(["WATER. On my PAWS. This prowl is ruined.","Puddle. I'm wet. I'm never forgiving this."]))}
+      }}
+    obs=obs.filter(o=>o.x>-40);
+    if(msgT>0)msgT-=dt;else $("wSay").textContent=pick(["Tap to pounce!","I'm not walking. I'm prowling. There's a difference. It's attitude.","Every step is a hunt. Every puddle is a crime."]),msgT=120;
+    ctx.fillStyle="#bfe9ff";ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#fff";[[60,40],[200,30],[330,50]].forEach(([cx,cy])=>{const x=(cx-now/40)%(W+80);ctx.beginPath();ctx.arc(x<-40?x+W+80:x,cy,16,0,7);ctx.arc((x<-40?x+W+80:x)+16,cy+4,13,0,7);ctx.fill()});
+    ctx.fillStyle="#7fd36b";ctx.fillRect(0,ground+10,W,H);
+    ctx.fillStyle="#5fb84f";for(let i=0;i<W;i+=24){const x=(i-(now/5)%24);ctx.fillRect(x,ground+10,12,4)}
+    for(const o of obs){
+      if(o.kind==="star"){if(o.hit)continue;ctx.font="22px sans-serif";ctx.textAlign="center";ctx.fillText("🐭",o.x,ground+4)}
+      else{ctx.fillStyle="#4aa3ff";ctx.beginPath();ctx.ellipse(o.x,ground+8,22,7,0,0,7);ctx.fill()}
+    }
+    // cat: tail, body, ears, eyes, nose
+    ctx.strokeStyle=color;ctx.lineWidth=7;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(px+22,py-8);ctx.quadraticCurveTo(px+50,py-20,px+44,py-46);ctx.stroke();
+    ctx.fillStyle=color;
+    ctx.beginPath();ctx.ellipse(px,py-20,30,24,0,0,7);ctx.fill();
+    ctx.beginPath();ctx.moveTo(px-24,py-32);ctx.lineTo(px-18,py-54);ctx.lineTo(px-6,py-38);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(px+24,py-32);ctx.lineTo(px+18,py-54);ctx.lineTo(px+6,py-38);ctx.closePath();ctx.fill();
+    ctx.fillStyle="#f9f3b8";[-10,10].forEach(dx=>{ctx.beginPath();ctx.ellipse(px+dx,py-24,5,6,0,0,7);ctx.fill()});
+    ctx.fillStyle="#2e2238";[-10,10].forEach(dx=>{ctx.beginPath();ctx.ellipse(px+dx,py-24,2,5,0,0,7);ctx.fill()});
+    ctx.fillStyle="#ff8da1";ctx.beginPath();ctx.moveTo(px-3,py-16);ctx.lineTo(px+3,py-16);ctx.lineTo(px,py-12);ctx.closePath();ctx.fill();
+    $("wTime").textContent=Math.max(0,Math.ceil(t))+"s";$("wSteps").textContent=Math.floor(steps)+" steps";
+    if(t<=0){run=false;end();return}
+    requestAnimationFrame(frame);
+  }
+  function end(){
+    wrap.hidden=true;c.onpointerdown=null;
+    S.walks++;S.xp+=1+stars;S.finds+=stars;
+    S.happy=clamp(S.happy+25+stars*5);S.energy=clamp(S.energy-20);S.tummy=clamp(S.tummy-6);S.clean=clamp(S.clean-splashes*12-5);
+    wiggle("hop");
+    say(`${Math.floor(steps)} steps, ${stars} ${stars===1?"mouse":"mice"}, ${splashes} puddle${splashes===1?"":"s"}. Never again. Same time tomorrow.`,splashes>1?"Wet paws. It wants a bath about as much as you want to give one.":"");
+    render();
+  }
+  requestAnimationFrame(frame);
+}
+
+// ---- wiring ----
+$("nameGo").addEventListener("click",()=>{const v=$("nameIn").value.trim();if(!v){$("nameIn").focus();return}S.name=v;S.xp++;render();paintFoods();say(`${v}. Hm. I'll answer to it when there's food. So, sometimes.`,"Feed it, prowl, bath, nap, talk to it. Tell it your name. Say meow. Say cucumber. Ask it anything.")});
+$("nameIn").addEventListener("keydown",e=>{if(e.key==="Enter")$("nameGo").click()});
+$("aFeed").addEventListener("click",()=>{$("tray").hidden=!$("tray").hidden;if(!$("tray").hidden)$("tray").scrollIntoView({behavior:"smooth",block:"nearest"})});
+$("aWalk").addEventListener("click",walk);
+$("aWash").addEventListener("click",wash);
+$("aSleep").addEventListener("click",sleep);
+$("talk").addEventListener("submit",async e=>{e.preventDefault();const v=$("say").value.trim();if(!v)return;$("say").value="";lastTalk=Date.now();if(S.asleep){say("z z z... (one ear turns toward you. The rest stays asleep.)","");return}
+  if(!BIG){wiggle("hop");say(reply(v),"");render();return}
+  learnFrom(v); S.said++; S.xp++; $("pet").classList.add("think"); say("...","thinking"); document.querySelectorAll(".talk button").forEach(b=>b.disabled=true);
+  try{const out=await bigReply(v);$("pet").classList.remove("think");wiggle("hop");say(out,"")}
+  catch(err){$("pet").classList.remove("think");wiggle("hop");say(reply(v),"Big brain napping ("+(err.message||"no answer")+"). Small brain answered.")}
+  document.querySelectorAll(".talk button").forEach(b=>b.disabled=false); render()});
+$("restart").addEventListener("click",()=>{if($("restart").dataset.arm==="1"){S=fresh();$("restart").textContent="Start over with a brand new cat";$("restart").dataset.arm="";render();$("nameIn").value=""}else{$("restart").textContent="Really? This cat will be gone forever. Tap again to confirm.";$("restart").dataset.arm="1";setTimeout(()=>{$("restart").textContent="Start over with a brand new cat";$("restart").dataset.arm=""},4000)}});
+$("pet").addEventListener("click",()=>{if(S.asleep)return;const mm=mem();mm.pats++;S.happy=clamp(S.happy+1);if(mm.pats%4===0){wiggle("wig");say("That's enough petting. *bites gently* We had a good thing. You pushed it.","")}else{wiggle("hop");say(pick(["*purrrrr* Behind the ears. Yes. Continue, servant.","Boop. You booped me. I allow it. Once.","*headbutt* That's a hug. Don't make it weird."]),"")}render()});
+
+function save(){try{localStorage.setItem("glorp",JSON.stringify(S))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem("glorp"));if(s&&s.prefs&&typeof s.hue==="number")return s}catch(e){}return null}
+function start(hot){
+  S=(hot&&hot.S)||load()||fresh(); mem();
+  if(!S.cat){S.cat=true;S.justCat=true;S.prefs=newPrefs();S.known={};S.hue=25+Math.floor(Math.random()*30)}
+  const wasLast=S.last; decay(); S.last=wasLast; greet(); S.last=Date.now();
+  render(); paintFoods(); blink(); probeBrain();
+  clearInterval(tickT); tickT=setInterval(()=>{decay();render()},30000);
+  clearInterval(idleT); idleT=setInterval(()=>{if(Date.now()-lastTalk>40000)idleLine()},45000);
+  document.addEventListener("click",()=>{lastTalk=Date.now()},true);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){decay();render()}});
+}
+window.claude?.hot?.snapshot?.(()=>({S}));
+window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
+})();
+</script>
+
+</body>
+</html>
