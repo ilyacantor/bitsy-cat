@@ -41,6 +41,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .top .lvl{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 .top .lvl b{color:var(--accent);font-size:16px}
 .top .lvl #brain.big{color:var(--good)}
+.vbtn{border:2px solid var(--line);background:var(--card);border-radius:10px;font-size:16px;padding:2px 7px;line-height:1.2;vertical-align:middle}
+.vbtn[aria-pressed="false"]{opacity:.5}
 .pet.think .body{animation:wig .5s infinite}
 
 /* room */
@@ -143,7 +145,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 </style>
 
 <div class="app" id="app">
-  <div class="top"><h1 id="title">My Cat</h1><div class="lvl"><span id="brain" title="Which brain is answering">small brain</span> · Level <b id="lvl">1</b></div></div>
+  <div class="top"><h1 id="title">My Cat</h1><div class="lvl"><button id="voice" class="vbtn" aria-pressed="true" title="Voice on or off">🔊</button> <span id="brain" title="Which brain is answering">small brain</span> · Level <b id="lvl">1</b></div></div>
 
   <div class="name" id="nameCard" hidden>
     <h2>A cat just appeared on your phone.</h2>
@@ -228,11 +230,11 @@ function mood(){
 function decay(){
   const now=Date.now(), dt=(now-S.last)/60000; S.last=now; if(dt<=0) return;
   S.tummy=clamp(S.tummy-dt/4); S.happy=clamp(S.happy-dt/5); S.clean=clamp(S.clean-dt/10);
-  if(S.asleep){S.energy=clamp(S.energy+dt/2); if(S.energy>=100){S.asleep=false}} else S.energy=clamp(S.energy-dt/10);
+  if(S.asleep){S.energy=clamp(S.energy+dt*10); if(S.energy>=100){S.asleep=false}} else S.energy=clamp(S.energy-dt/10);
 }
 
 // ---- rendering ----
-function say(main,sub){const b=$("bubble");b.innerHTML="";b.append(main);if(sub){const s=document.createElement("small");s.textContent=sub;b.append(s)}}
+function say(main,sub){const b=$("bubble");b.innerHTML="";b.append(main);if(sub){const s=document.createElement("small");s.textContent=sub;b.append(s)}if(main&&main!=="...")speak(main)}
 function meter(k,v){$("v"+k).textContent=Math.round(v);const f=$("f"+k);f.style.width=v+"%";f.className="fil"+(v<30?" low":v<60?" mid":"")}
 function render(){
   const m=mood();
@@ -261,6 +263,32 @@ function render(){
 function wiggle(cls){const p=$("pet");p.classList.remove("hop","wig");void p.offsetWidth;p.classList.add(cls)}
 function blink(){$("pet").classList.add("blink");setTimeout(()=>$("pet").classList.remove("blink"),140);blinkT=setTimeout(blink,1500+Math.random()*3000)}
 
+// ---- voice: the phone's own speech, no server ----
+let VOICE=true; try{VOICE=localStorage.getItem("glorp-voice")!=="off"}catch(e){}
+let spokenOnce=false;
+function voiceFor(text){
+  if(!("speechSynthesis" in window))return null;
+  const vs=speechSynthesis.getVoices(), ru=/[\u0400-\u04FF]/.test(text);
+  const prefs=ru?["Milena","Google русский","Yuri","Microsoft Svetlana"]:["Samantha","Google UK English Female","Karen","Moira","Google US English","Microsoft Zira","Microsoft Aria","Daniel"];
+  for(const p of prefs){const v=vs.find(v=>v.name&&v.name.includes(p));if(v)return v}
+  return vs.find(v=>v.lang&&v.lang.toLowerCase().startsWith(ru?"ru":"en"))||null;
+}
+function speak(text){
+  if(!VOICE||!("speechSynthesis" in window)||!text)return;
+  const clean=String(text).replace(/\*([^*]+)\*/g,", $1,").replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu,"").replace(/\.\.\./g,", ").replace(/\s+/g," ").trim();
+  if(!clean)return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(clean);
+    const v=voiceFor(clean); if(v)u.voice=v; u.lang=v?v.lang:(/[\u0400-\u04FF]/.test(clean)?"ru-RU":"en-US");
+    u.pitch=1.35; u.rate=1.02; u.volume=1;
+    spokenOnce=true; speechSynthesis.speak(u);
+  }catch(e){}
+}
+function paintVoice(){const b=$("voice");b.textContent=VOICE?"🔊":"🔇";b.setAttribute("aria-pressed",String(VOICE));b.title=VOICE?"Voice on. Tap to mute.":"Voice off. Tap to hear the cat."}
+$("voice").addEventListener("click",()=>{VOICE=!VOICE;try{localStorage.setItem("glorp-voice",VOICE?"on":"off")}catch(e){}paintVoice();if(VOICE)speak(pick(["Meow. I have a voice now. Feed me.","Testing. Testing. Is this thing edible?","Hello servant. You can hear me now. No escape."]));else if("speechSynthesis" in window)speechSynthesis.cancel()});
+document.addEventListener("pointerdown",()=>{if(VOICE&&!spokenOnce){const t=$("bubble").firstChild&&$("bubble").firstChild.textContent;if(t&&t!=="...")speak(t)}},{once:true,capture:true});
+if("speechSynthesis" in window)speechSynthesis.getVoices();
 // ---- the brain: memory, moods, commands, jokes ----
 const COLORS={red:0,orange:28,yellow:52,gold:46,lime:90,green:125,teal:170,turquoise:178,blue:215,navy:232,purple:275,violet:280,magenta:305,pink:332,brown:25,ginger:22,black:-2,white:-3,grey:-4,gray:-4,rainbow:-1};
 const hash=s=>{let h=7;for(const ch of s)h=(h*31+ch.charCodeAt(0))>>>0;return h};
@@ -463,7 +491,7 @@ function wash(){
 }
 function sleep(){
   if(S.asleep){S.asleep=false;say("I was awake the whole time. Watching you. Judging. Also, breakfast?","");}
-  else{S.asleep=true;S.xp++;say("Finally. Nap number fourteen. I'm behind schedule because of you.","Energy fills up while it sleeps. Come back later. Quietly.")}
+  else{S.asleep=true;S.xp++;say("Finally. Nap number fourteen. I'm behind schedule because of you.","Energy fills up fast while it naps. About ten minutes to full.")}
   render();
 }
 
@@ -474,7 +502,7 @@ function walk(){
   const W=c.width,H=c.height,ground=H-40;
   let t=20,steps=0,y=0,vy=0,obs=[],stars=0,splashes=0,last=performance.now(),spawn=0,speed=3.2,msgT=0,run=true;
   const color=getComputedStyle($("body")).backgroundColor;
-  const wsay=m=>{$("wSay").textContent=m;msgT=90};
+  const wsay=m=>{$("wSay").textContent=m;msgT=90;speak(m)};
   wrap.hidden=false;
   const jump=()=>{if(y===0){vy=-11;}};
   c.onpointerdown=jump;
@@ -546,7 +574,7 @@ function start(hot){
   S=(hot&&hot.S)||load()||fresh(); mem();
   if(!S.cat){S.cat=true;S.justCat=true;S.prefs=newPrefs();S.known={};S.hue=25+Math.floor(Math.random()*30)}
   const wasLast=S.last; decay(); S.last=wasLast; greet(); S.last=Date.now();
-  render(); paintFoods(); blink(); probeBrain();
+  render(); paintFoods(); paintVoice(); blink(); probeBrain();
   clearInterval(tickT); tickT=setInterval(()=>{decay();render()},30000);
   clearInterval(idleT); idleT=setInterval(()=>{if(Date.now()-lastTalk>40000)idleLine()},45000);
   document.addEventListener("click",()=>{lastTalk=Date.now()},true);
