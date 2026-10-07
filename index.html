@@ -129,7 +129,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .food:active{transform:translateY(2px)}
 
 /* talk */
-.talk{display:grid;grid-template-columns:1fr auto;gap:8px}
+.talk{display:grid;grid-template-columns:1fr auto auto;gap:8px}
+.cta.mic{padding:11px 14px;background:var(--card);color:var(--ink);border:2px solid var(--line);box-shadow:0 5px 0 var(--line)}
+.cta.mic.on{background:var(--low);color:#fff;border-color:var(--low);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+.mouth.grin{width:34px;height:12px}.mouth.grin::before,.mouth.grin::after{width:17px;height:12px}
+.mouth.gasp::before,.mouth.gasp::after{display:none}.mouth.gasp{width:16px;height:18px;border:3px solid var(--ink);border-radius:50%}
 .talk input{min-width:0;border:2px solid var(--line);border-radius:14px;padding:11px 12px;background:var(--card);font-weight:700}
 .talk input::placeholder{color:var(--muted)}
 .cta{border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-weight:700;font-size:17px;padding:11px 16px;box-shadow:0 5px 0 color-mix(in srgb,var(--accent) 70%,black)}
@@ -206,7 +211,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
     <div class="foods" id="foods"></div>
   </div>
 
-  <form class="talk" id="talk"><input id="say" placeholder="Say hi, roar, meow, a color, a joke, your name..." maxlength="60" autocomplete="off"><button class="cta" type="submit">Talk</button></form>
+  <form class="talk" id="talk"><input id="say" placeholder="Say hi, roar, ask it anything..." maxlength="200" autocomplete="off"><button class="cta mic" type="button" id="mic" title="Hold a conversation by voice" hidden>🎤</button><button class="cta" type="submit">Talk</button></form>
   <button class="ghost" id="restart">Start over with a brand new egg</button>
 </div>
 
@@ -301,6 +306,21 @@ function paintVoice(){const b=$("voice");b.textContent=VOICE?"🔊":"🔇";b.set
 $("voice").addEventListener("click",()=>{VOICE=!VOICE;try{localStorage.setItem("glorp-voice",VOICE?"on":"off")}catch(e){}paintVoice();if(VOICE)speak(pick(["Meow. I have a voice now. Feed me.","Testing. Testing. Is this thing edible?","Hello servant. You can hear me now. No escape."]));else if("speechSynthesis" in window)speechSynthesis.cancel()});
 document.addEventListener("pointerdown",()=>{if(VOICE&&!spokenOnce){const t=$("bubble").firstChild&&$("bubble").firstChild.textContent;if(t&&t!=="...")speak(t)}},{once:true,capture:true});
 if("speechSynthesis" in window)speechSynthesis.getVoices();
+// ---- ears: the phone's own speech recognition; tap the mic, talk, it sends itself ----
+(function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition, mic=$("mic"); if(!SR)return; mic.hidden=false;
+  let rec=null; const idle="Say hi, roar, ask it anything...";
+  mic.addEventListener("click",()=>{
+    if(rec){rec.stop();return}
+    if("speechSynthesis" in window)speechSynthesis.cancel();
+    rec=new SR(); const last=(mem().chat||[]).slice(-1)[0]; rec.lang=last&&/[\u0400-\u04FF]/.test(last.content)?"ru-RU":"en-GB"; rec.interimResults=true; rec.maxAlternatives=1;
+    mic.classList.add("on"); $("say").placeholder="Listening... tap the mic again to stop"; $("say").value="";
+    rec.onresult=e=>{let t="";for(const r of e.results)t+=r[0].transcript;$("say").value=t;if(e.results[e.results.length-1].isFinal)rec.stop()};
+    rec.onerror=e=>{say(e.error==="not-allowed"?"I can't hear you. The microphone is blocked. Allow it in the browser, then try again.":"I didn't catch that. Try again, louder, servant.","")};
+    rec.onend=()=>{mic.classList.remove("on");rec=null;$("say").placeholder=idle;if($("say").value.trim())$("talk").requestSubmit()};
+    try{rec.start()}catch(e){mic.classList.remove("on");rec=null;say("The microphone would not start ("+e.message+").","")}
+  });
+})();
 // ---- the brain: memory, moods, commands, jokes ----
 const COLORS={red:0,orange:28,yellow:52,gold:46,lime:90,green:125,teal:170,turquoise:178,blue:215,navy:232,purple:275,violet:280,magenta:305,pink:332,brown:25,ginger:22,black:-2,white:-3,grey:-4,gray:-4,rainbow:-1};
 const hash=s=>{let h=7;for(const ch of s)h=(h*31+ch.charCodeAt(0))>>>0;return h};
@@ -452,24 +472,40 @@ function brainState(){
     walks:S.walks,mice:S.finds,meals:S.meals,secretFavoriteFood:love.n,secretHatedFood:yuck.n,foodsTried:Object.keys(S.known).map(k=>FOODS.find(f=>f.k===k).n+" ("+S.prefs[k]+")"),
     humanName:m.you,humanFavorites:m.favs,humanLikes:m.likes,wordsTheHumanTaught:m.words.slice(-8),facts:m.facts||[],foods:FOODS.map(f=>f.n),colorsItCanTurn:Object.keys(COLORS)};
 }
+let faceT=null;
+function face(kind){
+  const map={happy:"",grin:"grin",surprised:"gasp",grumpy:"frown",sleepy:"flat",hungry:"o"}; if(!(kind in map))return;
+  clearTimeout(faceT); $("mouth").className="mouth "+map[kind]; faceT=setTimeout(()=>render(),6000);
+}
 async function bigReply(text){
   const m=mem(); m.chat=m.chat||[];
-  const body={message:text,state:brainState(),history:m.chat.slice(-10)};
+  const body={message:text,state:brainState(),history:m.chat.slice(-30)};
   const ctl=new AbortController(); const timer=setTimeout(()=>ctl.abort(),20000);
   const r=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body),signal:ctl.signal});
   clearTimeout(timer);
   const j=await r.json().catch(()=>({}));
   if(!r.ok||!j.say) throw new Error(j.error||("server "+r.status));
-  m.chat.push({role:"user",content:text},{role:"assistant",content:j.say}); if(m.chat.length>12)m.chat.splice(0,m.chat.length-12);
+  m.chat.push({role:"user",content:text},{role:"assistant",content:j.say}); if(m.chat.length>40)m.chat.splice(0,m.chat.length-40);
+  if(j.face)setTimeout(()=>face(j.face),50);
   if(j.remember){m.facts=m.facts||[];if(!m.facts.includes(j.remember))m.facts.push(j.remember);if(m.facts.length>20)m.facts.shift()}
   if(typeof j.hue==="number")S.hue=((j.hue%360)+360)%360;
   const act={hop:()=>wiggle("hop"),wig:()=>wiggle("wig"),walk:()=>setTimeout(walk,1200),sleep:()=>setTimeout(sleep,900),wash:()=>setTimeout(wash,700),feed:()=>{$("tray").hidden=false;setTimeout(()=>$("tray").scrollIntoView({behavior:"smooth",block:"nearest"}),100)}}[j.action];
   if(act)act();
   return j.say;
 }
+// a game event goes through the big brain when it is on; the built-in line otherwise, or if the brain fails (shown as such)
+let talkedThisSession=false, lastBigIdle=0;
+async function react(eventText,localSay){
+  if(!BIG){localSay();return}
+  $("pet").classList.add("think"); say("...","thinking");
+  try{const out=await bigReply("[event] "+eventText);$("pet").classList.remove("think");say(out,"")}
+  catch(err){$("pet").classList.remove("think");localSay();const b=$("bubble");const sm=document.createElement("small");sm.textContent="Big brain napping ("+(err.message||"no answer")+"). Small brain answered.";b.append(sm)}
+  render();
+}
 function idleLine(){
   const m=mem(), md=mood();
   if(S.asleep||document.hidden) return;
+  if(BIG&&talkedThisSession&&Date.now()-lastBigIdle>180000){lastBigIdle=Date.now();react("[idle] The human has gone quiet for a minute. Pull them back in: ask them a question about themselves or something they told you, pick up a thread from earlier, or say what you feel like right now given your meters. One or two sentences.",()=>{});return}
   const L=[timeLine(),
     S.finds>0?`I keep my ${S.finds} ${S.finds===1?"mouse":"mice"} under the couch. You'll find them eventually. With your foot.`:"I heard there are mice outside. Just walking around. Free. Prowl?",
     S.meals>0?`I've eaten ${S.meals} time${S.meals>1?"s":""} in my life. The bowl is still empty. Explain that.`:"I have never eaten. Ever. Not once. (Don't check the meter.)",
@@ -493,10 +529,12 @@ function feed(k){
   S.known[k]=true; S.meals++; S.xp++; const mm=mem(); mm.sameFood.push(k); if(mm.sameFood.length>3)mm.sameFood.shift();
   S.hue=Math.round(S.hue+(f.hue-S.hue)*.12);
   if(mm.sameFood.length===3&&mm.sameFood.every(x=>x===k)){S.tummy=clamp(S.tummy+15);$("tray").hidden=true;render();paintFoods();say(`${f.n} AGAIN? I loved it yesterday. Today it's poison. That's how cats work. Keep up.`,"Try something else. It gets bored.");return}
-  if(p==="love"){S.tummy=clamp(S.tummy+30);S.happy=clamp(S.happy+15);wiggle("hop");say(pick([`${f.n}!!! *purrs so loud the phone vibrates* Finally. FINALLY. You listened.`,`${f.n}. Yes. I'd marry it. I'd knock everything else off the table for it.`]),"That's its favorite. Remember that.")}
-  else if(p==="yuck"){S.tummy=clamp(S.tummy+10);S.happy=clamp(S.happy-10);wiggle("wig");say(pick([`${f.n}? *sniffs* *walks away* *comes back* *sniffs again* No. Insulting.`,`${f.n}. I'd rather eat the box it came in. Actually, give me the box.`]),"It hates that one. Never again.")}
-  else{S.tummy=clamp(S.tummy+22);S.happy=clamp(S.happy+4);say(pick([`${f.n}. Acceptable. I'll eat half and leave the rest as a message.`,`${f.n}. Fine. I ate it. I'm not thanking you. I'm never thanking you.`]),"")}
+  let local;
+  if(p==="love"){S.tummy=clamp(S.tummy+30);S.happy=clamp(S.happy+15);wiggle("hop");local=()=>say(pick([`${f.n}!!! *purrs so loud the phone vibrates* Finally. FINALLY. You listened.`,`${f.n}. Yes. I'd marry it. I'd knock everything else off the table for it.`]),"That's its favorite. Remember that.")}
+  else if(p==="yuck"){S.tummy=clamp(S.tummy+10);S.happy=clamp(S.happy-10);wiggle("wig");local=()=>say(pick([`${f.n}? *sniffs* *walks away* *comes back* *sniffs again* No. Insulting.`,`${f.n}. I'd rather eat the box it came in. Actually, give me the box.`]),"It hates that one. Never again.")}
+  else{S.tummy=clamp(S.tummy+22);S.happy=clamp(S.happy+4);local=()=>say(pick([`${f.n}. Acceptable. I'll eat half and leave the rest as a message.`,`${f.n}. Fine. I ate it. I'm not thanking you. I'm never thanking you.`]),"")}
   $("tray").hidden=true; render(); paintFoods();
+  react(`The human just fed you ${f.n}. You ${p==="love"?"LOVE it, it is your secret favourite and they just found out":p==="yuck"?"HATE it, it is the one food you cannot stand":"find it acceptable, nothing special"}. Tummy is now ${Math.round(S.tummy)} of 100. React in character; if it is your favourite, make sure they know to remember it.`,local);
 }
 function paintFoods(){
   const el=$("foods"); el.innerHTML="";
@@ -507,12 +545,12 @@ function wash(){
   const bb=document.createElement("div");bb.className="bubbles";
   for(let i=0;i<14;i++){const b=document.createElement("i");b.style.left=Math.random()*100+"%";b.style.animationDelay=Math.random()*.8+"s";bb.append(b)}
   $("room").append(bb);setTimeout(()=>bb.remove(),2600);
-  wiggle("wig");say(pick(["WATER. BETRAYAL. I will remember this forever. Forever is about a minute, but still.","*yowls* I'm clean. I'm furious. I'm both. Look what you've done to my fluff."]),"Clean, but it cost you a little Happy. Cats.");render();
+  wiggle("wig");render();
+  react("The human just gave you a BATH with bubbles. You are now completely clean and deeply offended, because water is betrayal. Happy dropped a little.",()=>say(pick(["WATER. BETRAYAL. I will remember this forever. Forever is about a minute, but still.","*yowls* I'm clean. I'm furious. I'm both. Look what you've done to my fluff."]),"Clean, but it cost you a little Happy. Cats."));
 }
 function sleep(){
-  if(S.asleep){S.asleep=false;say("I was awake the whole time. Watching you. Judging. Also, breakfast?","");}
-  else{S.asleep=true;S.xp++;say("Finally. Nap number fourteen. I'm behind schedule because of you.","Energy fills up fast while it naps. About ten minutes to full.")}
-  render();
+  if(S.asleep){S.asleep=false;render();react(`The human just woke you up from a nap. Energy is ${Math.round(S.energy)} of 100.`,()=>say("I was awake the whole time. Watching you. Judging. Also, breakfast?",""));}
+  else{S.asleep=true;S.xp++;render();react(`The human just tucked you in for a nap. Energy is ${Math.round(S.energy)} of 100 and will refill in about ten minutes. Say goodnight in character, very briefly.`,()=>say("Finally. Nap number fourteen. I'm behind schedule because of you.","Energy fills up fast while it naps. About ten minutes to full."));}
 }
 
 // ---- prowl mini game ----
@@ -567,15 +605,14 @@ function walk(){
     wrap.hidden=true;c.onpointerdown=null;
     S.walks++;S.xp+=1+stars;S.finds+=stars;
     S.happy=clamp(S.happy+25+stars*5);S.energy=clamp(S.energy-20);S.tummy=clamp(S.tummy-6);S.clean=clamp(S.clean-splashes*12-5);
-    wiggle("hop");
-    say(`${Math.floor(steps)} steps, ${stars} ${stars===1?"mouse":"mice"}, ${splashes} puddle${splashes===1?"":"s"}. Never again. Same time tomorrow.`,splashes>1?"Wet paws. It wants a bath about as much as you want to give one.":"");
-    render();
+    wiggle("hop"); render();
+    react(`You just came back from a stomp-walk outside: ${Math.floor(steps)} steps, caught ${stars} ${stars===1?"mouse":"mice"}, splashed through ${splashes} puddle${splashes===1?"":"s"}. Happy went up, energy went down${splashes?", and your paws are wet and muddy":""}. React in character and mention the numbers.`,()=>say(`${Math.floor(steps)} steps, ${stars} ${stars===1?"mouse":"mice"}, ${splashes} puddle${splashes===1?"":"s"}. Never again. Same time tomorrow.`,splashes>1?"Wet paws. It wants a bath about as much as you want to give one.":""));
   }
   requestAnimationFrame(frame);
 }
 
 // ---- wiring ----
-$("nameGo").addEventListener("click",()=>{const v=$("nameIn").value.trim();if(!v){$("nameIn").focus();return}S.name=v;S.xp++;render();paintFoods();say(`${v}. Hm. I'll answer to it when there's food. So, sometimes.`,"Feed it, prowl, bath, nap, talk to it. Tell it your name. Say meow. Say cucumber. Ask it anything.")});
+$("nameGo").addEventListener("click",()=>{const v=$("nameIn").value.trim();if(!v){$("nameIn").focus();return}S.name=v;S.xp++;render();paintFoods();react(`The human just named you "${v}". This is your very first conversation. Introduce yourself as a catosaurus in a couple of sentences, then ask the human their name.`,()=>say(`${v}. Hm. I'll answer to it when there's food. So, sometimes.`,"Feed it, stomp, bath, nap, talk to it. Tell it your name. Say roar. Ask it anything."))});
 $("nameIn").addEventListener("keydown",e=>{if(e.key==="Enter")$("nameGo").click()});
 $("aFeed").addEventListener("click",()=>{$("tray").hidden=!$("tray").hidden;if(!$("tray").hidden)$("tray").scrollIntoView({behavior:"smooth",block:"nearest"})});
 $("aWalk").addEventListener("click",walk);
@@ -583,7 +620,7 @@ $("aWash").addEventListener("click",wash);
 $("aSleep").addEventListener("click",sleep);
 $("talk").addEventListener("submit",async e=>{e.preventDefault();const v=$("say").value.trim();if(!v)return;$("say").value="";lastTalk=Date.now();if(S.asleep){say("z z z... (one ear turns toward you. The rest stays asleep.)","");return}
   if(!BIG){wiggle("hop");say(reply(v),"");render();return}
-  learnFrom(v); S.said++; S.xp++; $("pet").classList.add("think"); say("...","thinking"); document.querySelectorAll(".talk button").forEach(b=>b.disabled=true);
+  learnFrom(v); S.said++; S.xp++; talkedThisSession=true; $("pet").classList.add("think"); say("...","thinking"); document.querySelectorAll(".talk button").forEach(b=>b.disabled=true);
   try{const out=await bigReply(v);$("pet").classList.remove("think");wiggle("hop");say(out,"")}
   catch(err){$("pet").classList.remove("think");wiggle("hop");say(reply(v),"Big brain napping ("+(err.message||"no answer")+"). Small brain answered.")}
   document.querySelectorAll(".talk button").forEach(b=>b.disabled=false); render()});
