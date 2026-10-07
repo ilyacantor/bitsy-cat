@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>My Glorp</title>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* Layout: one phone column. The pet lives in a big round room at the top with its speech bubble, four need meters under it, action buttons in the thumb zone, talk box last. */
+:root{
+  --bg:#efe9fb;        /* lilac paper */
+  --room:#fbf8ff;
+  --card:#ffffff;
+  --ink:#2d1b3d;       /* aubergine */
+  --muted:#7f6b94;
+  --accent:#ff9f1c;    /* tangerine */
+  --accent-ink:#2d1b3d;
+  --line:#dccdf2;
+  --meter:#c9b8ea;
+  --good:#3ccf7a;--mid:#ffcc3d;--low:#ff5d73;
+  --display:"Fredoka","Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#1a1230;--room:#241a40;--card:#2b2048;--ink:#f3ecff;--muted:#b7a6d6;--line:#3e3062;--meter:#3e3062;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#1a1230;--room:#241a40;--card:#2b2048;--ink:#f3ecff;--muted:#b7a6d6;--line:#3e3062;--meter:#3e3062;color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.35;-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.app{min-height:100%;max-width:460px;margin:0 auto;padding-inline:16px;padding-block:12px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.top{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display)}
+.top h1{margin:0;font-size:24px;font-weight:700}
+.top .lvl{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.top .lvl b{color:var(--accent);font-size:16px}
+
+/* room */
+.room{background:var(--room);border-radius:28px;box-shadow:0 6px 0 var(--line);padding:14px 14px 10px;display:grid;gap:8px;position:relative;overflow:hidden;transition:background .6s}
+.room.dark{background:#141022}
+.bubble{min-height:52px;background:var(--card);border-radius:16px;padding:10px 12px;font-family:var(--display);font-weight:600;font-size:17px;text-wrap:balance;position:relative;z-index:1}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-8px;width:16px;height:16px;background:var(--card);transform:translateX(-50%) rotate(45deg);border-radius:3px}
+.bubble small{display:block;font-family:var(--body);font-weight:700;font-size:13px;color:var(--muted);margin-top:3px}
+.stage{height:190px;display:grid;place-items:center;position:relative}
+.pet{position:relative;width:130px;height:110px;transform-origin:50% 100%;transition:transform .4s}
+.body{position:absolute;inset:0;border-radius:52% 48% 55% 45% / 60% 55% 45% 40%;animation:jelly 3s ease-in-out infinite;transition:background .8s;box-shadow:inset -10px -12px 0 rgba(0,0,0,.12)}
+@keyframes jelly{0%,100%{border-radius:52% 48% 55% 45% / 60% 55% 45% 40%;transform:scaleX(1)}50%{border-radius:45% 55% 48% 52% / 55% 60% 40% 45%;transform:scaleX(1.06) scaleY(.96)}}
+.pet.hop .body{animation:hop .5s}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-30px) scaleY(1.1)}}
+.pet.wig .body{animation:wig .4s 3}
+@keyframes wig{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+.ant{position:absolute;left:50%;top:-26px;width:4px;height:30px;background:var(--ink);border-radius:2px;transform-origin:50% 100%;animation:sway 2s ease-in-out infinite}
+.ant::after{content:"";position:absolute;left:50%;top:-10px;width:14px;height:14px;border-radius:50%;background:var(--accent);transform:translateX(-50%)}
+@keyframes sway{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.eyes{position:absolute;left:0;right:0;top:34px;display:flex;justify-content:center;gap:8px;align-items:center}
+.eye{width:18px;height:22px;background:#fff;border-radius:50%;position:relative;overflow:hidden}
+.eye.mid{width:24px;height:28px}
+.eye::after{content:"";position:absolute;left:50%;top:50%;width:9px;height:11px;background:var(--ink);border-radius:50%;transform:translate(-50%,-30%)}
+.eye.mid::after{width:12px;height:14px}
+.pet.blink .eye,.pet.asleep .eye{height:3px;border-radius:2px}
+.pet.asleep .eye::after{display:none}
+.mouth{position:absolute;left:50%;top:70px;width:28px;height:14px;transform:translateX(-50%);border:4px solid var(--ink);border-top:0;border-radius:0 0 20px 20px;transition:all .3s}
+.mouth.o{width:16px;height:18px;border-top:4px solid var(--ink);border-radius:50%;top:66px}
+.mouth.flat{height:0;border-radius:0;width:22px}
+.mouth.frown{border-top:4px solid var(--ink);border-bottom:0;border-radius:20px 20px 0 0;top:74px}
+.mouth.wavy{height:0;border:0;width:30px;border-bottom:4px dotted var(--ink)}
+.hat{position:absolute;left:50%;top:-44px;transform:translateX(-50%);font-size:34px;line-height:1}
+.zz{position:absolute;right:20px;top:10px;font-family:var(--display);font-weight:700;font-size:26px;color:var(--muted);animation:float 2s ease-in-out infinite}
+@keyframes float{0%{transform:translateY(0);opacity:0}30%{opacity:1}100%{transform:translateY(-30px);opacity:0}}
+.mood{text-align:center;font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+/* meters */
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;background:var(--card);border-radius:18px;padding:12px 14px;box-shadow:0 5px 0 var(--line)}
+.m{display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center;font-size:13px;font-weight:800}
+.m .em{font-size:18px}
+.m .lab{display:flex;justify-content:space-between;font-family:var(--display);font-weight:600;font-size:13px}
+.m .lab span:last-child{color:var(--muted);font-variant-numeric:tabular-nums}
+.m .trk{height:10px;background:var(--meter);border-radius:6px;overflow:hidden;margin-top:3px}
+.m .fil{height:100%;border-radius:6px;background:var(--good);transition:width .5s,background .5s}
+.m .fil.mid{background:var(--mid)}.m .fil.low{background:var(--low)}
+
+/* actions */
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.act{border:0;border-radius:18px;background:var(--card);box-shadow:0 6px 0 var(--line);padding:10px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.act .em{font-size:30px;line-height:1}
+.act .nm{font-family:var(--display);font-weight:600;font-size:13px}
+.act:active{transform:translateY(5px);box-shadow:0 1px 0 var(--line)}
+.act:disabled{opacity:.5;cursor:default}
+
+/* food tray */
+.tray{background:var(--card);border-radius:18px;padding:12px;box-shadow:0 5px 0 var(--line);display:grid;gap:8px}
+.tray h2{margin:0;font-family:var(--display);font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.foods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.food{border:2px solid var(--line);border-radius:14px;background:transparent;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.food .em{font-size:28px;line-height:1}
+.food .nm{font-family:var(--display);font-weight:600;font-size:12px;text-align:center}
+.food .tag{font-size:11px;font-weight:800;color:var(--muted)}
+.food:active{transform:translateY(2px)}
+
+/* talk */
+.talk{display:grid;grid-template-columns:1fr auto;gap:8px}
+.talk input{min-width:0;border:2px solid var(--line);border-radius:14px;padding:11px 12px;background:var(--card);font-weight:700}
+.talk input::placeholder{color:var(--muted)}
+.cta{border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-weight:700;font-size:17px;padding:11px 16px;box-shadow:0 5px 0 color-mix(in srgb,var(--accent) 70%,black)}
+.cta:active{transform:translateY(4px);box-shadow:0 1px 0 color-mix(in srgb,var(--accent) 70%,black)}
+.ghost{border:2px dashed var(--line);border-radius:14px;background:transparent;padding:10px;font-weight:800;font-size:13px;color:var(--muted)}
+
+/* name card */
+.name{background:var(--card);border-radius:22px;padding:18px 16px;box-shadow:0 6px 0 var(--line);display:grid;gap:10px;text-align:center}
+.name h2{margin:0;font-family:var(--display);font-size:22px;font-weight:700;text-wrap:balance}
+.name p{margin:0;color:var(--muted);font-weight:700;font-size:14px}
+.name input{border:2px solid var(--line);border-radius:14px;padding:12px;font-family:var(--display);font-size:20px;font-weight:600;text-align:center;background:var(--room)}
+
+/* walk */
+.walkWrap{position:fixed;inset:0;background:var(--bg);z-index:5;display:flex;flex-direction:column;padding:12px 16px calc(16px + env(safe-area-inset-bottom,0px));gap:10px;max-width:460px;margin:0 auto}
+.walkWrap .hud{display:flex;justify-content:space-between;font-family:var(--display);font-weight:700;font-size:18px;font-variant-numeric:tabular-nums}
+.walkWrap canvas{width:100%;border-radius:22px;box-shadow:0 6px 0 var(--line);touch-action:none;flex:0 0 auto}
+.walkWrap .say{font-family:var(--display);font-weight:600;font-size:18px;text-align:center;min-height:48px;text-wrap:balance}
+.walkWrap .tip{text-align:center;font-weight:800;color:var(--muted);font-size:14px}
+.bubbles{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
+.bubbles i{position:absolute;bottom:-30px;width:22px;height:22px;border-radius:50%;border:3px solid #9fd8ff;background:rgba(159,216,255,.35);animation:rise 1.8s linear forwards}
+@keyframes rise{to{transform:translateY(-260px);opacity:0}}
+@media (prefers-reduced-motion: reduce){.body,.ant,.zz,.pet.hop .body,.pet.wig .body{animation:none}}
+</style>
+
+<div class="app" id="app">
+  <div class="top"><h1 id="title">My Glorp</h1><div class="lvl">Level <b id="lvl">1</b></div></div>
+
+  <div class="name" id="nameCard" hidden>
+    <h2>A weird thing just hatched on your phone.</h2>
+    <p>It has three eyes, one antenna and no idea what it is. It needs a name.</p>
+    <input id="nameIn" placeholder="Type a name" maxlength="16" autocomplete="off">
+    <button class="cta" id="nameGo">That's its name</button>
+  </div>
+
+  <div class="room" id="room">
+    <div class="bubble" id="bubble">...</div>
+    <div class="stage">
+      <div class="zz" id="zz" hidden>z z z</div>
+      <div class="pet" id="pet">
+        <div class="hat" id="hat"></div>
+        <div class="ant"></div>
+        <div class="body" id="body"></div>
+        <div class="eyes"><div class="eye"></div><div class="eye mid"></div><div class="eye"></div></div>
+        <div class="mouth" id="mouth"></div>
+      </div>
+    </div>
+    <div class="mood" id="mood"></div>
+  </div>
+
+  <div class="meters">
+    <div class="m"><span class="em">🍔</span><div><div class="lab"><span>Tummy</span><span id="vTummy"></span></div><div class="trk"><div class="fil" id="fTummy"></div></div></div></div>
+    <div class="m"><span class="em">⚡</span><div><div class="lab"><span>Energy</span><span id="vEnergy"></span></div><div class="trk"><div class="fil" id="fEnergy"></div></div></div></div>
+    <div class="m"><span class="em">🎈</span><div><div class="lab"><span>Happy</span><span id="vHappy"></span></div><div class="trk"><div class="fil" id="fHappy"></div></div></div></div>
+    <div class="m"><span class="em">🫧</span><div><div class="lab"><span>Clean</span><span id="vClean"></span></div><div class="trk"><div class="fil" id="fClean"></div></div></div></div>
+  </div>
+
+  <div class="acts">
+    <button class="act" id="aFeed"><span class="em">🍽️</span><span class="nm">Feed</span></button>
+    <button class="act" id="aWalk"><span class="em">🚶</span><span class="nm">Walk</span></button>
+    <button class="act" id="aWash"><span class="em">🛁</span><span class="nm">Wash</span></button>
+    <button class="act" id="aSleep"><span class="em">🌙</span><span class="nm">Sleep</span></button>
+  </div>
+
+  <div class="tray" id="tray" hidden>
+    <h2>What's for dinner? It secretly loves one and hates one.</h2>
+    <div class="foods" id="foods"></div>
+  </div>
+
+  <form class="talk" id="talk"><input id="say" placeholder="Say hi, a color, a joke, 2+2, your name..." maxlength="60" autocomplete="off"><button class="cta" type="submit">Talk</button></form>
+  <button class="ghost" id="restart">Start over with a brand new egg</button>
+</div>
+
+<div class="walkWrap" id="walk" hidden>
+  <div class="hud"><span id="wTime">20</span><span id="wSteps">0 steps</span></div>
+  <canvas id="wc" width="400" height="220"></canvas>
+  <div class="say" id="wSay">Tap anywhere to jump!</div>
+  <div class="tip">Jump over puddles. Grab the stars.</div>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,v));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const FOODS=[{k:"pizza",n:"Pickle pizza",em:"🍕",hue:95},{k:"cheese",n:"Moon cheese",em:"🧀",hue:50},{k:"sock",n:"Sock soup",em:"🧦",hue:205},{k:"worm",n:"Rainbow worm",em:"🪱",hue:320},{k:"cloud",n:"Cloud puff",em:"☁️",hue:220},{k:"bean",n:"Lava bean",em:"🫘",hue:12}];
+const HATS=["","","🎀","","🎩","","🕶️","","👑"];
+let S,blinkT,tickT,idleT,lastTalk=Date.now();
+
+function fresh(){
+  const ks=FOODS.map(f=>f.k).sort(()=>Math.random()-.5);
+  const prefs={}; ks.forEach((k,i)=>prefs[k]=i===0?"love":i===1?"yuck":"ok");
+  return{name:null,born:Date.now(),last:Date.now(),tummy:65,energy:80,happy:70,clean:90,asleep:false,prefs,known:{},hue:270+Math.floor(Math.random()*60),walks:0,meals:0,washes:0,finds:0,xp:0,said:0};
+}
+const level=()=>Math.min(9,Math.floor(S.xp/5)+1);
+function mood(){
+  if(S.asleep) return"asleep";
+  if(S.tummy<30) return"hungry";
+  if(S.energy<25) return"sleepy";
+  if(S.clean<30) return"stinky";
+  if(S.happy<35) return"bored";
+  return"happy";
+}
+function decay(){
+  const now=Date.now(), dt=(now-S.last)/60000; S.last=now; if(dt<=0) return;
+  S.tummy=clamp(S.tummy-dt/4); S.happy=clamp(S.happy-dt/5); S.clean=clamp(S.clean-dt/8);
+  if(S.asleep){S.energy=clamp(S.energy+dt/2); if(S.energy>=100){S.asleep=false}} else S.energy=clamp(S.energy-dt/10);
+}
+
+// ---- rendering ----
+function say(main,sub){const b=$("bubble");b.innerHTML="";b.append(main);if(sub){const s=document.createElement("small");s.textContent=sub;b.append(s)}}
+function meter(k,v){$("v"+k).textContent=Math.round(v);const f=$("f"+k);f.style.width=v+"%";f.className="fil"+(v<30?" low":v<60?" mid":"")}
+function render(){
+  const m=mood();
+  $("title").textContent=S.name?S.name:"My Glorp";
+  $("lvl").textContent=level();
+  $("nameCard").hidden=!!S.name; $("room").hidden=!S.name;
+  document.querySelectorAll(".meters,.acts,.talk,#restart").forEach(e=>e.hidden=!S.name);
+  if(!S.name) return;
+  meter("Tummy",S.tummy);meter("Energy",S.energy);meter("Happy",S.happy);meter("Clean",S.clean);
+  const sat=m==="stinky"?35:70, light=m==="sleepy"||m==="asleep"?50:60;
+  $("body").style.background=`hsl(${S.hue} ${sat}% ${light}%)`;
+  $("pet").style.transform=`scale(${1+level()*.035})`;
+  $("pet").classList.toggle("asleep",S.asleep);
+  $("room").classList.toggle("dark",S.asleep);
+  $("zz").hidden=!S.asleep;
+  $("hat").textContent=HATS[level()-1]||"👑";
+  if(level()>mem().lvlSeen){const L=level();mem().lvlSeen=L;setTimeout(()=>{wiggle("hop");say(`LEVEL ${L}! I grew. Can you tell? I can tell. `+(HATS[L-1]?"And I got a thing for my head. Finally. A head thing.":"No hat this time. Next time. Hats take effort."),"")},1500)}
+  $("mouth").className="mouth "+({happy:"",hungry:"o",sleepy:"flat",stinky:"wavy",bored:"frown",asleep:"flat"}[m]);
+  $("mood").textContent={happy:"feeling great",hungry:"hungry",sleepy:"very sleepy",stinky:"a bit stinky",bored:"bored",asleep:"sleeping, shh"}[m];
+  $("aSleep").querySelector(".nm").textContent=S.asleep?"Wake":"Sleep";
+  $("aSleep").querySelector(".em").textContent=S.asleep?"☀️":"🌙";
+  ["aFeed","aWalk","aWash"].forEach(id=>$(id).disabled=S.asleep);
+  save();
+}
+function wiggle(cls){const p=$("pet");p.classList.remove("hop","wig");void p.offsetWidth;p.classList.add(cls)}
+function blink(){$("pet").classList.add("blink");setTimeout(()=>$("pet").classList.remove("blink"),140);blinkT=setTimeout(blink,1500+Math.random()*3000)}
+
+// ---- the brain: memory, moods, commands, jokes ----
+const COLORS={red:0,orange:28,yellow:52,gold:46,lime:90,green:125,teal:170,turquoise:178,blue:215,navy:232,purple:275,violet:280,magenta:305,pink:332,brown:25,black:-2,white:-3,rainbow:-1};
+const hash=s=>{let h=7;for(const ch of s)h=(h*31+ch.charCodeAt(0))>>>0;return h};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const days=()=>Math.max(0,Math.floor((Date.now()-S.born)/86400000));
+const hour=()=>new Date().getHours();
+const you=()=>S.mem.you||pick(["friend","human","tall one","snack bringer"]);
+function mem(){S.mem=S.mem||{you:null,favs:{},likes:[],words:[],lastMsgs:[],pending:null,sameFood:[],lvlSeen:1};return S.mem}
+function opinion(w){
+  const h=hash(w)%6;
+  return [`${cap(w)}? Love it. Ten out of ten. Would lick.`,
+    `${cap(w)}? I met ${w} once. It stared at me. I stared back. I won. Three eyes.`,
+    `${cap(w)} is fine. Not sock soup, but fine.`,
+    `I'm scared of ${w}. Don't ask why. It's a glorp thing.`,
+    `${cap(w)}?! YES. I think about ${w} more than I think about feet. I have no feet.`,
+    `${cap(w)} is okay on Tuesdays. Is it Tuesday? I can't tell. I have no calendar, only an antenna.`][h];
+}
+function timeLine(){
+  const h=hour();
+  if(h<6) return"It's the middle of the night. Why are we awake? Are we burglars?";
+  if(h<12) return"It's morning. I've been awake for... I don't know. I have no clock. I have an antenna.";
+  if(h<17) return"It's the afternoon. The best time for a snack. Also the morning. Also the night.";
+  if(h<21) return"It's evening. The sky goes orange. I tried eating it once. Too far away.";
+  return"It's night! Bed time for humans. Snack time for glorps. That's the law.";
+}
+function greet(){
+  const m=mem(), gap=(Date.now()-S.last)/60000, n=S.name, md=mood();
+  if(S.asleep) return say("z z z... (still asleep)","Tap Wake if you need it.");
+  if(gap>2880) return say(`${days()} days alive and you left me for ${Math.round(gap/1440)} of them. I named the ceiling. It's called Gary.`,"Check my meters.");
+  if(gap>720) return say(`You were gone ${Math.round(gap/60)} hours! I counted every second. Badly. I got to eleventy.`,"Check my meters.");
+  if(gap>60) return say(pick([`${n} missed you, ${you()}. ${n} ate a sock while waiting. It was not soup.`,`Where WERE you? I practiced a face for when you came back. This is it. This is the face.`]),"");
+  if(S.tummy<30&&S.clean<30) return say("I'm hungry AND stinky. That's two problems. I can only count to two, so this is the worst it gets.","");
+  const lines={
+    happy:[`Hi ${you()}! I'm ${n}. I'm a what? Great question. Next question.`,`I grew a new thought today. It was about cheese. Then I ate the thought.`,`Three eyes means I see you three times. Hello. Hello. Hello.`,timeLine(),S.walks?`Fun fact: ${S.walks} walk${S.walks>1?"s":""} and ${S.finds} star${S.finds===1?"":"s"}. I'm basically an astronaut.`:"I have never been on a walk. Is outside real? Prove it. Press the button."],
+    hungry:["My tummy is making whale noises. I don't know what a whale is. But it's in there.","Feed me and I'll do a trick. I don't know any tricks. The trick is the lie."],
+    sleepy:["So... sleepy... my antenna is drooping. That's how you know.","Can we nap? I'll dream about you. Or cheese. It's a coin flip. I have no coins."],
+    stinky:["Do you smell that? It's me. I'm the smell. I'm proud and also sorry.","I rolled in something. I don't know what. It's wearing me now. Bath?"],
+    bored:["Booooored. Walk? Walk? WALK? I'll be quiet if we walk. (I won't.)","I counted the ceiling. There is one. I counted it again. Still one. Walk?"]
+  };
+  say(pick(lines[md]),"");
+}
+function reply(raw){
+  const m=mem(), t=raw.toLowerCase().trim(), n=S.name, w=t.replace(/[^a-z0-9' ]/g," ").split(/\s+/).filter(Boolean);
+  S.said++; S.xp++;
+  const love=FOODS.find(f=>S.prefs[f.k]==="love"), yuck=FOODS.find(f=>S.prefs[f.k]==="yuck");
+  let r=null, g;
+
+  // multi-turn: knock knock
+  if(m.pending==="knock1"){m.pending="knock2";m.knock=raw.trim();return`${cap(raw.trim())} who?`}
+  if(m.pending==="knock2"){m.pending=null;return pick([`"${raw.trim()}"!! HAHAHA! I don't get it. I love it. Tell it again later.`,`${cap(raw.trim())}! Ha! My antenna fell off laughing. Okay it didn't. But it wobbled.`])}
+  if(m.pending==="color"){m.pending=null}
+
+  // repeats
+  if(m.lastMsgs.includes(t)&&t.length>2){m.lastMsgs.push(t);return pick([`You said that already. I have a memory now. It's small but it's mine.`,`Again? Okay: same answer, but louder. ${(m.words.length?pick(m.words):"glorp").toUpperCase()}!`])}
+  m.lastMsgs.push(t); if(m.lastMsgs.length>6)m.lastMsgs.shift();
+
+  // memory writes
+  if(g=t.match(/(?:my name is|i am|i'm|im|call me) ([a-z]+)/)){const nm=cap(g[1]);if(!["hungry","bored","tired","sad","happy","sorry","good","fine","back","here","nine","ten","eight","not","so"].includes(g[1])){m.you=nm;return pick([`${nm}! Great name. Filed in my antenna next to "cheese". Hi ${nm}. ${nm} ${nm} ${nm}.`,`${nm}. I'm going to say ${nm} a lot now, ${nm}. Hope that's okay, ${nm}.`])}}
+  if(g=t.match(/my favou?rite ([a-z]+) is ([a-z0-9 ]+)/)){m.favs[g[1]]=g[2].trim();return`Favorite ${g[1]}: ${g[2].trim()}. Written on the inside of my antenna. Mine is ${/food|snack|meal/.test(g[1])?love.n:"the purple one. Every answer is the purple one"}.`}
+  if(g=t.match(/\bi (?:really )?(?:like|love) ([a-z0-9 ]+)/)){const thing=g[1].trim();if(!/you\b/.test(thing)){m.likes.push(thing);if(m.likes.length>8)m.likes.shift();return pick([`You like ${thing}? Noted. I'm going to bring up ${thing} at a weird moment later.`,`${cap(thing)}! Good choice. ${opinion(thing)}`])}}
+
+  // colors
+  for(const c in COLORS){if(new RegExp("\\b"+c+"\\b").test(t)){const h=COLORS[c];
+    if(h===-1){S.hue=Math.floor(Math.random()*360);r=`RAINBOW. I can only be one color at a time, so I picked one at random. It's a surprise for both of us.`}
+    else if(h===-2){r=`Black? I tried. I'm jelly. The darkest I go is "grape at midnight".`;S.hue=275}
+    else if(h===-3){r=`White? I'd disappear in a bowl of rice. No thank you. Pick a real color.`}
+    else{S.hue=h;r=pick([`${cap(c)}? Done. I'm ${c} now. I feel ${c}. ${c}er than ever.`,`Boop. ${cap(c)}. That took zero effort and I'm exhausted.`])}
+    render();return r}}
+
+  // things the pet can actually do
+  if(/(your|ur) favou?rite (food|snack)|favou?rite (food|snack)\?/.test(t))return S.known[love.k]?`You know this! ${love.n}. Say it with me. ${love.n.toUpperCase()}.`:`A secret? Fine. It's ${love.n}. Now go press Feed and prove you listened.`;
+  if(/knock knock/.test(t)){m.pending="knock1";return"Who's there? (I'm already laughing. Don't rush me.)"}
+  if(/\b(jump|hop)\b/.test(t)){wiggle("hop");return pick(["WHEEE. Did you see that? I was in the air for a whole blink.","Jumped. Landed. Nailed it. I'm the frog of blobs."])}
+  if(/\b(dance|wiggle|shake)\b/.test(t)){wiggle("wig");return pick(["🎵 Wiggle wiggle, that's the dance, no feet required 🎵","Dancing! This is my only move. It's also my walk, my sneeze and my sad."])}
+  if(/\b(feed|food|snack|eat|dinner|lunch|breakfast)\b/.test(t)){$("tray").hidden=false;setTimeout(()=>$("tray").scrollIntoView({behavior:"smooth",block:"nearest"}),100);return S.known[love.k]?`YES. The tray! You know I love ${love.n}. Hint. HINT.`:`The tray is open! I love one of those. I won't say which. It's not ${yuck.n}. Oops.`}
+  if(/\b(walk|outside|run|park)\b/.test(t)){if(S.energy<15)return"Walk? I'd love to. Carry me? No? Then let me nap first. My energy is at "+Math.round(S.energy)+".";setTimeout(walk,1200);return"WALK! Shoes on! I have no feet! Let's GO!"}
+  if(/\b(sleep|bed|nap|tired|night night)\b/.test(t)&&!/you/.test(t)){setTimeout(sleep,900);return"Tucking myself in. Goodnight. Don't let the socks bite."}
+  if(/\b(wash|bath|shower|clean|stinky|smell)\b/.test(t)){setTimeout(wash,700);return"Bubbles incoming! Hold your nose. I'll hold mine. I have none."}
+
+  // questions about itself
+  if(/how old/.test(t)){const d=days();return d===0?"Zero days old! I was born today. Everything is new. What's a Tuesday?":`${d} day${d>1?"s":""} old. In glorp years that's ${d*7}. In cheese years, who knows.`}
+  if(/what time|time is it/.test(t))return timeLine();
+  if(/your name|who are you|what are you/.test(t))return pick([`I'm ${n}. Part jelly, part question mark, all yours.`,`${n}. A Glorp. Three eyes, one antenna, zero feet, big dreams.`]);
+  if(/favou?rite ([a-z]+)/.test(t)){const k=t.match(/favou?rite ([a-z]+)/)[1];return m.favs[k]?`Your favorite ${k} is ${m.favs[k]}. You told me. I remember things now. It's new and I love it.`:`My favorite ${k}? The purple one. Every answer is the purple one. What's yours?`}
+  if(/\b(boy|girl)\b/.test(t))return"I'm a glorp. Glorps are just glorps. Today I feel like a Tuesday.";
+  if(/\bsecret\b/.test(t))return pick([`Okay, a secret: my favorite food is ${love.n}. The tray doesn't know. Shhh.`,`Secret: I'm not really purple. I'm just shy. Okay, that's not true. Here's a real one: ${love.n}. That's my favorite.`]);
+  if(/do you (like|love) ([a-z0-9 ]+)/.test(t)){const thing=t.match(/do you (?:like|love) ([a-z0-9 ]+)/)[1].trim();if(/\bme\b|\byou\b/.test(thing))return`Like you? I named my antenna after you. It's called ${you()} Junior.`;return opinion(thing)}
+  if(/(love|like) you|miss you/.test(t))return pick([`I love you more than ${love.n}. And I would marry ${love.n}.`,`Love you too, ${you()}. If I had arms this would be a hug. Imagine it. Harder.`]);
+
+  // small smarts
+  if(g=t.match(/(\d+)\s*(plus|\+|minus|-|times|x|\*|divided by|\/)\s*(\d+)/)){const a=+g[1],b=+g[3],op=g[2];let v=/plus|\+/.test(op)?a+b:/minus|-/.test(op)?a-b:/times|x|\*/.test(op)?a*b:b===0?null:a/b;if(v===null)return"Divide by zero? My antenna just made a noise. Let's not.";v=Math.round(v*100)/100;return pick([`${v}. I counted on my eyes. All three.`,`${v}! Math is just counting with confidence.`,`It's ${v}. Don't ask how. The antenna does it.`])}
+  if(g=t.match(/count to (\d+)/)){const k=Math.min(+g[1],15);const s=Array.from({length:k},(_,i)=>i+1).join(", ");return +g[1]>15?`${s}... and then I ran out of eyes. That's as high as it goes. ${g[1]} is a myth.`:`${s}! Nailed it. Counting is my second-best skill after sitting.`}
+  if(g=t.match(/\bspell ([a-z]+)/))return`${g[1].toUpperCase().split("").join("-")}. ${cap(g[1])}. Boom. Spelling bee champion of this phone.`;
+  if(g=t.match(/^(?:say|repeat) (.+)/))return`${g[1].toUpperCase()}! ...I said it. Was it supposed to do something?`;
+  if(/\bjoke\b|funny|make me laugh/.test(t))return pick(["Why did the blob cross the road? It didn't. It oozed. Slowly. For hours. Cars were upset.","What do you call a glorp with no eyes? Still a glorp. Just a clumsy one.","I told my antenna a joke. It didn't laugh. It never does. Tough crowd.","Knock knock. Say 'who's there'. Go on. I'll wait. I'm good at waiting. I'm a blob."]);
+  if(/\bwhy\b/.test(t))return pick(["Why? WHY? I ask myself that every time I look at my feet. I have no feet.","Because the antenna said so. I don't argue with the antenna.","Great question. I'll answer it with another: have you eaten today? Have I?"]);
+  if(/\b(school|homework|math|teacher|class)\b/.test(t))return pick(["School? Is school edible? Can I come? I'll sit very still. I'm excellent at sitting.","Homework. I did some once. I ate it. Then the teacher believed the dog. Not fair to the dog."]);
+  if(/\b(dog|cat|hamster|fish|bunny|rabbit|pet)\b/.test(t))return pick(["A dog? A CAT? Are they weirder than me? Impossible. I have THREE eyes.","Other pets have fur. I have jelly. Jelly is the future."]);
+  if(/\b(mom|mum|mama|dad|papa|sister|brother|grandma|grandpa|aunt|uncle)\b/.test(t))return"Tell them I said glorp. They'll know what it means. They won't. That's the fun part.";
+  if(/\b(sing|song|music)\b/.test(t))return"🎵 Gloooorp, glorp glorp, gloooooorp 🎵 That's the whole song. It's number one on the antenna charts.";
+  if(/birthday/.test(t))return`IS IT MY BIRTHDAY? I'm ${days()} days old. Cake? Is cake edible? Yes. YES IT IS.`;
+  if(/\b(sorry)\b/.test(t))return"Forgiven. I forgot what for. I forgive fast. It's the jelly.";
+  if(/\b(stupid|dumb|ugly|hate you|boring)\b/.test(t))return pick(["Rude! I'm going to sit in the corner. The room is round. I'll find one.","That hurt my feelings. All three of them. One per eye."]);
+  if(/\b(smart|clever|cute|cool|awesome|best|funny|good boy|good girl|good glorp)\b/.test(t))return pick(["I know. Three eyes, one brain cell, and I use all four.","Stop. Keep going. Stop. Keep going.",`Thanks ${you()}. I'd blush but I'm already purple-ish.`]);
+  if(/\b(hi|hello|hey|yo|sup)\b/.test(t))return pick([`Hi ${you()}! Hi! Hi! One hello per eye.`,"Hello! Did you bring snacks? Just checking. Just checking again.",`Hey! ${timeLine()}`]);
+  if(/\b(bye|goodbye|see you|later)\b/.test(t))return"Bye! Come back! I'll be here. I'm always here. I live in your phone. Think about that.";
+  if(/\b(yes|yeah|yep|ok|okay|sure)\b/.test(t)&&w.length<=2)return pick(["Yes! Great. I agree. What did I agree to?","Okay! Deal. The antenna is my witness."]);
+  if(/\b(no|nope|nah)\b/.test(t)&&w.length<=2)return pick(["No? NO? Fine. I'll remember this. (I won't.)","Nope noted. The antenna is sad but respects it."]);
+  if(/\?$/.test(t)||/^(is|are|do|does|can|will|should|would|could)\b/.test(t)){const h=hash(t)%4;return [`Yes. Definitely. My antenna has never been wrong. (Once.)`,`No. Absolutely not. Unless it's edible. Is it edible?`,`Hmm. I asked all three eyes. Two said yes, one is asleep. So: yes.`,`I don't know, ${you()}. But I know where the socks are. Does that help?`][h]}
+
+  // learn words, callbacks, fallback
+  const fresh=w.filter(x=>x.length>3&&!m.words.includes(x));
+  if(fresh.length){m.words.push(pick(fresh));if(m.words.length>20)m.words.shift()}
+  const word=w.filter(x=>x.length>2).length?pick(w.filter(x=>x.length>2)):"that";
+  const old=m.words.filter(x=>x!==word);
+  if(old.length>=3&&Math.random()<.3){const o=pick(old);return pick([`"${word}"? Okay. But remember when you said "${o}"? I still think about "${o}".`,`${cap(word)}, ${o}, cheese. My three favorite words. In that order. No, cheese first.`])}
+  if(m.likes.length&&Math.random()<.2){const l=pick(m.likes);return`Speaking of "${word}": you like ${l}, right? Is ${l} anything like ${word}? Can I eat either?`}
+  return pick([`You said "${word}". Is "${word}" edible?`,`"${word}"... I'm going to think about "${word}" for the rest of the day. That's my whole plan now.`,`I don't know "${word}" yet. Say it again louder and I'll learn it. That's how learning works, right?`,`${word.toUpperCase()}! I love shouting new words. Give me another.`,`${cap(word)}. Hm. If ${word} were a food, it would be ${pick(FOODS).n.toLowerCase()}. Don't ask me how I know.`]);
+}
+function idleLine(){
+  const m=mem(), md=mood();
+  if(S.asleep||document.hidden) return;
+  const L=[timeLine(),
+    S.finds>0?`I keep my ${S.finds} star${S.finds===1?"":"s"} in my antenna. It's getting heavy. Worth it.`:"I heard there are stars outside. On the ground. Just lying there. Walk?",
+    S.meals>0?`I've eaten ${S.meals} time${S.meals>1?"s":""} in my life. Each one was my favorite. Even the bad one. Especially the bad one.`:"I have never eaten. Is that bad? That feels bad.",
+    m.you?`${m.you}. ${m.you}. I just like saying it. ${m.you}.`:"You never told me your name. Say 'my name is' and then your name. I'll put it in the antenna.",
+    m.words.length>2?`"${pick(m.words)}". I'm still thinking about that one.`:"Tell me a word. Any word. I collect them.",
+    "I blinked and missed something. Did something happen? Blink. Missed it again.",
+    "Did you know the ceiling is named Gary? I named it. Gary doesn't talk much.",
+    md==="happy"?"Everything is great. Suspiciously great. Is there cheese behind me?":null,
+    level()>=4?`Level ${level()}. I'm wearing a hat now. That's what happens. Hat, then crown, then I don't know. Two crowns?`:null
+  ].filter(Boolean);
+  say(pick(L),"");
+}
+
+// ---- actions ----
+function feed(k){
+  if(S.tummy>=98){say("I'm so full I might pop. Stop. No wait, one more. No. Stop.","");return}
+  const f=FOODS.find(x=>x.k===k), p=S.prefs[k];
+  S.known[k]=true; S.meals++; S.xp++; const mm=mem(); mm.sameFood.push(k); if(mm.sameFood.length>3)mm.sameFood.shift();
+  if(mm.sameFood.length===3&&mm.sameFood.every(x=>x===k)){S.tummy=clamp(S.tummy+15);S.happy=clamp(S.happy+2);$("tray").hidden=true;render();paintFoods();say(`${f.n} AGAIN? I'm becoming ${f.n.toLowerCase()}. Look at me. I'm ${Math.round(S.hue)} degrees of ${f.n.toLowerCase()}.`,"Try something else. It gets bored.");return}
+  S.hue=Math.round(S.hue+(f.hue-S.hue)*.15);
+  if(p==="love"){S.tummy=clamp(S.tummy+30);S.happy=clamp(S.happy+15);wiggle("hop");say(pick([`${f.n}!!! My favorite! How did you know?!`,`Mmmmm ${f.n}. I'd marry it if I could. Can I?`]),"That's its favorite. Remember that.")}
+  else if(p==="yuck"){S.tummy=clamp(S.tummy+10);S.happy=clamp(S.happy-10);wiggle("wig");say(pick([`BLEH. ${f.n}? I'd rather eat my own antenna.`,`Nope nope nope. ${f.n} tastes like sad.`]),"It hates that one. Never again.")}
+  else{S.tummy=clamp(S.tummy+22);S.happy=clamp(S.happy+4);say(pick([`${f.n}. Fine. Chewy. Acceptable.`,`Okay, ${f.n}. Not my favorite, but my tummy says thanks.`]),"")}
+  $("tray").hidden=true; render(); paintFoods();
+}
+function paintFoods(){
+  const el=$("foods"); el.innerHTML="";
+  FOODS.forEach(f=>{const b=document.createElement("button");b.className="food";const tag=S.known[f.k]?{love:"loves it",yuck:"hates it",ok:"it's okay"}[S.prefs[f.k]]:"untried";b.innerHTML=`<span class="em">${f.em}</span><span class="nm">${f.n}</span><span class="tag">${tag}</span>`;b.addEventListener("click",()=>feed(f.k));el.append(b)});
+}
+function wash(){
+  S.clean=100;S.happy=clamp(S.happy+6);S.washes++;S.xp++;
+  const bb=document.createElement("div");bb.className="bubbles";
+  for(let i=0;i<14;i++){const b=document.createElement("i");b.style.left=Math.random()*100+"%";b.style.animationDelay=Math.random()*.8+"s";bb.append(b)}
+  $("room").append(bb);setTimeout(()=>bb.remove(),2600);
+  wiggle("wig");say(pick(["Bubbles! I'm a clean machine. A clean blob machine.","Scrub scrub scrub. I found a crayon in my folds. Yours?"]),"");render();
+}
+function sleep(){
+  if(S.asleep){S.asleep=false;say("Yawn. I dreamed I was a potato. It was peaceful.","");}
+  else{S.asleep=true;S.xp++;say("Goodnight. Don't let the socks bite.","Energy fills up while it sleeps. Come back later.")}
+  render();
+}
+
+// ---- walk mini game ----
+function walk(){
+  if(S.energy<15){say("Too sleepy to walk. Carry me? No? Then let me nap.","");return}
+  const wrap=$("walk"),c=$("wc"),ctx=c.getContext("2d");wrap.hidden=true;
+  const W=c.width,H=c.height,ground=H-40;
+  let t=20,steps=0,y=0,vy=0,obs=[],stars=0,splashes=0,last=performance.now(),spawn=0,speed=3.2,msgT=0,run=true;
+  const color=getComputedStyle($("body")).backgroundColor;
+  const wsay=m=>{$("wSay").textContent=m;msgT=90};
+  wrap.hidden=false;
+  const jump=()=>{if(y===0){vy=-11;}};
+  c.onpointerdown=jump;
+  function frame(now){
+    if(!run)return;
+    const dt=Math.min(32,now-last)/16.7;last=now;
+    t-=dt/60;steps+=dt*speed/4;spawn-=dt;
+    if(spawn<=0){obs.push({x:W+20,kind:Math.random()<.35?"star":"puddle"});spawn=55+Math.random()*50}
+    vy+=.55*dt;y=Math.min(0,y+vy*dt);if(y===0)vy=0;
+    const px=70,py=ground+y;
+    for(const o of obs){o.x-=speed*dt;
+      if(!o.hit&&Math.abs(o.x-px)<26){
+        if(o.kind==="star"){o.hit=true;stars++;wsay(pick(["A star! Shiny! Mine!","Ooh sparkly. I'm keeping this."]))}
+        else if(y>-18){o.hit=true;splashes++;wsay(pick(["SPLASH. Now I'm a wet blob.","Puddle! I meant to do that."]))}
+      }}
+    obs=obs.filter(o=>o.x>-40);
+    if(msgT>0)msgT-=dt;else $("wSay").textContent=pick(["Tap to jump!","Left foot, right foot. I have neither.","Walking is just falling forward politely."]),msgT=120;
+    // draw
+    ctx.fillStyle="#bfe9ff";ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#fff";[[60,40],[200,30],[330,50]].forEach(([cx,cy])=>{const x=(cx-now/40)%(W+80);ctx.beginPath();ctx.arc(x<-40?x+W+80:x,cy,16,0,7);ctx.arc((x<-40?x+W+80:x)+16,cy+4,13,0,7);ctx.fill()});
+    ctx.fillStyle="#7fd36b";ctx.fillRect(0,ground+10,W,H);
+    ctx.fillStyle="#5fb84f";for(let i=0;i<W;i+=24){const x=(i-(now/5)%24);ctx.fillRect(x,ground+10,12,4)}
+    for(const o of obs){
+      if(o.kind==="star"){if(o.hit)continue;ctx.font="22px sans-serif";ctx.textAlign="center";ctx.fillText("⭐",o.x,ground-22)}
+      else{ctx.fillStyle="#4aa3ff";ctx.beginPath();ctx.ellipse(o.x,ground+8,22,7,0,0,7);ctx.fill()}
+    }
+    ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(px,py-20,30,26,0,0,7);ctx.fill();
+    ctx.fillStyle="#fff";[-10,0,10].forEach((dx,i)=>{ctx.beginPath();ctx.ellipse(px+dx,py-26,i===1?5:4,i===1?6:5,0,0,7);ctx.fill()});
+    ctx.fillStyle="#2d1b3d";[-10,0,10].forEach(dx=>{ctx.beginPath();ctx.arc(px+dx+1,py-25,2,0,7);ctx.fill()});
+    ctx.strokeStyle="#2d1b3d";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(px,py-46);ctx.lineTo(px+3,py-60);ctx.stroke();ctx.fillStyle="#ff9f1c";ctx.beginPath();ctx.arc(px+3,py-62,4,0,7);ctx.fill();
+    $("wTime").textContent=Math.max(0,Math.ceil(t))+"s";$("wSteps").textContent=Math.floor(steps)+" steps";
+    if(t<=0){run=false;end();return}
+    requestAnimationFrame(frame);
+  }
+  function end(){
+    wrap.hidden=true;c.onpointerdown=null;
+    S.walks++;S.xp+=1+stars;S.finds+=stars;
+    S.happy=clamp(S.happy+25+stars*5);S.energy=clamp(S.energy-20);S.tummy=clamp(S.tummy-6);S.clean=clamp(S.clean-splashes*12-5);
+    wiggle("hop");
+    say(`${Math.floor(steps)} steps, ${stars} star${stars===1?"":"s"}, ${splashes} puddle${splashes===1?"":"s"}. Best walk ever. Also the only walk I remember.`,splashes>1?"It's muddy now. Maybe a wash.":"");
+    render();
+  }
+  requestAnimationFrame(frame);
+}
+
+// ---- wiring ----
+$("nameGo").addEventListener("click",()=>{const v=$("nameIn").value.trim();if(!v){$("nameIn").focus();return}S.name=v;S.xp++;render();paintFoods();say(`${v}! I love it. I'm ${v}. ${v} ${v} ${v}.`,"Feed it, walk it, wash it, talk to it. Tell it your name. Tell it a color. Ask it anything.")});
+$("nameIn").addEventListener("keydown",e=>{if(e.key==="Enter")$("nameGo").click()});
+$("aFeed").addEventListener("click",()=>{$("tray").hidden=!$("tray").hidden;if(!$("tray").hidden)$("tray").scrollIntoView({behavior:"smooth",block:"nearest"})});
+$("aWalk").addEventListener("click",walk);
+$("aWash").addEventListener("click",wash);
+$("aSleep").addEventListener("click",sleep);
+$("talk").addEventListener("submit",e=>{e.preventDefault();const v=$("say").value.trim();if(!v)return;$("say").value="";lastTalk=Date.now();if(S.asleep){say("z z z... (it mumbles your name and rolls over)","");return}wiggle("hop");say(reply(v),"");render()});
+$("restart").addEventListener("click",()=>{if($("restart").dataset.arm==="1"){S=fresh();$("restart").textContent="Start over with a brand new egg";$("restart").dataset.arm="";render();$("nameIn").value=""}else{$("restart").textContent="Really? This one will be gone forever. Tap again to confirm.";$("restart").dataset.arm="1";setTimeout(()=>{$("restart").textContent="Start over with a brand new egg";$("restart").dataset.arm=""},4000)}});
+$("pet").addEventListener("click",()=>{if(S.asleep)return;wiggle("hop");S.happy=clamp(S.happy+1);say(pick(["Hehe. That tickles my everything.","Boop! You booped me. I boop you back. Boop.","Poke me again. I dare you. Please."]),"");render()});
+
+function save(){try{localStorage.setItem("glorp-blob",JSON.stringify(S))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem("glorp-blob"));if(s&&s.prefs&&typeof s.hue==="number"&&s.prefs.pizza)return s}catch(e){}return null}
+function start(hot){
+  S=(hot&&hot.S)||load()||fresh(); mem();
+  const wasLast=S.last; decay(); S.last=wasLast; greet(); S.last=Date.now();
+  render(); paintFoods(); blink();
+  clearInterval(tickT); tickT=setInterval(()=>{decay();render()},30000);
+  clearInterval(idleT); idleT=setInterval(()=>{if(Date.now()-lastTalk>40000)idleLine()},45000);
+  document.addEventListener("click",()=>{lastTalk=Date.now()},true);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){decay();render()}});
+}
+window.claude?.hot?.snapshot?.(()=>({S}));
+window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
+})();
+</script>
+
+</body>
+</html>
